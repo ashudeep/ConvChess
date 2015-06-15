@@ -2,7 +2,7 @@ train_net: "./nets/train_piece.prototxt"
 test_net: "./nets/test_piece.prototxt"
 test_iter: 100
 test_interval: 10000
-base_lr: 0.01
+base_lr: 0.1
 lr_policy: "step"
 solver_type: ADAGRAD
 gamma: 0.9

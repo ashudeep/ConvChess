@@ -70,9 +70,10 @@ if not args.testing: # Training
 	solver = caffe.SGDSolver(args.solver)
 	if args.resume_state !='' :	
 		solver.restore(args.resume_state)
-	f = open("models/%s/results.txt"%model_name,"w")
-	f.write("iter\ttrain_loss\ttest_loss\taccuracy@1\taccuracy@3\taccuracy@5\taccuracy@10\n")
-	f.close()
+	else:
+		f = open("models/%s/results.txt"%model_name,"a")
+		f.write("iter\ttrain_loss\ttest_loss\taccuracy@1\taccuracy@3\taccuracy@5\taccuracy@10\n")
+		f.close()
 	for it in xrange(niters):
 		solver.step(1)
 		train_losses.append(solver.net.blobs['loss'].data.flat[0])

@@ -51,6 +51,21 @@ def convert_bitboard_to_image(board):
 
 	return im
 
+def convert_bitboard_to_image_2(board):
+	im2d = np.array(list(str(board).replace('\n', '').replace(' ', ''))).reshape((8, 8))
+	im = np.zeros((8,8,12))
+
+	for i in xrange(BOARD_SIZE[0]):
+		for j in xrange(BOARD_SIZE[1]):
+			piece = im2d[i, j]
+			if piece == '.': continue
+			if piece.isupper():
+				im[i, j, 2*PIECE_TO_INDEX[piece.upper()]] = 1
+			else:
+				im[i, j, 1+2*PIECE_TO_INDEX[piece.upper()]] = 1
+
+	return im
+
 def convert_image_to_bitboard(im):
 	board = chess.Bitboard()
 	board.clear()
@@ -65,6 +80,21 @@ def convert_image_to_bitboard(im):
 					piece = piece.lower()
 				board.set_piece_at(new_coords, chess.Piece.from_symbol(piece))
 
+	return board
+
+def convert_image_to_bitboard_2(im):
+	board = chess.Bitboard()
+	board.clear()
+	for i in xrange(BOARD_SIZE[0]):
+		for j in xrange(BOARD_SIZE[1]):
+			index_piece = np.where(im[(i,j)] != 0)
+			index_piece = index_piece[0]
+			new_coords = flatten_coord2d((7 - i, j))
+			if index_piece.shape != (0,):
+				piece = INDEX_TO_PIECE[index_piece[0]/2]
+				if im[(i,j,index_piece[0]/2)] == -1:
+					piece = piece.lower()
+				board.set_piece_at(new_coords, chess.Piece.from_symbol(piece))
 	return board
 
 def flip_image(im):
@@ -104,6 +134,26 @@ def clip_pieces_single(prob_dist, im):
 		im = im[0:6]
 	indices = np.max(im, axis=0)
 	indices[indices < 0] = 0
+	prob_dist = np.reshape(indices, (1, 64)) * prob_dist
+	return prob_dist/np.sum(prob_dist)
+
+def clip_pieces_single_2(prob_dist, im):
+	'''
+	Clips the probability distribution of the piece selector to
+	return non-zero probabilities only for the places with player's pieces
+	in them.
+
+	# 1, 64 : dimension of prob_dists
+	# 6, 8, 8 : dimensions of ims
+	'''
+	if im.shape[0]>12: #if there is an elo rating layer, just remove it
+		im = im[0:12]
+	im2 = np.zeros((6,8,8))
+	for i in xrange(6):
+		im2[i] = im[2*i]
+	im2 = im
+	indices = np.max(im, axis=0)
+	#indices[indices < 0] = 0
 	prob_dist = np.reshape(indices, (1, 64)) * prob_dist
 	return prob_dist/np.sum(prob_dist)
 
@@ -161,6 +211,48 @@ def clip_moves(prob_dist, im, coord):
 
 
 
+def clip_moves_2(prob_dist, im, coord):
+
+	# 1, 64
+	# 6, 8 ,8
+	# (5, 0)
+
+	# im2 = np.rollaxis(im, 0, 3)
+	# board = convert_image_to_bitboard(im2)
+
+	# piece_coord = coord2d_to_chess_coord(coord)
+	# for i in range(BOARD_SIZE[0]):
+	# 	for j in range(BOARD_SIZE[1]):
+	# 		to_coord = coord2d_to_chess_coord((i, j))
+	# 		uci_move = piece_coord + to_coord
+	# 		if chess.Move.from_uci(uci_move) not in board.legal_moves:
+	# 			prob_dist[0, j + i*8] = 0.0
+
+	# return prob_dist
+
+
+	prob_dist2 = np.copy(prob_dist)
+
+	im2 = np.rollaxis(im, 0, 3)
+	board = convert_image_to_bitboard_2(im2)
+
+	piece_coord = coord2d_to_chess_coord(coord)
+	for i in xrange(BOARD_SIZE[0]):
+		for j in xrange(BOARD_SIZE[1]):
+			to_coord = coord2d_to_chess_coord((i, j))
+			uci_move = piece_coord + to_coord
+			# print chess.Move.from_uci(uci_move), chess.Move.from_uci(uci_move) in board.legal_moves
+			if chess.Move.from_uci(uci_move) not in board.legal_moves:
+				# print "And I zerod it"
+				c = flatten_coord2d((i, j))
+				# print "Before: ", prob_dist[:, c]
+				prob_dist2[:, c] = 0.0
+				# print "After: ", prob_dist[:, c]
+	# print np.zeros_like(prob_dist) == prob_dist
+	if np.sum(prob_dist2)>0:
+		return prob_dist2/np.sum(prob_dist2)
+	else:
+		return prob_dist2
 
 
 
