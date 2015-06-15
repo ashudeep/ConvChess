@@ -4,11 +4,10 @@ import chess
 import argparse
 from util import *
 import timeit
-
-
+import play.play3 as Play 
 
 parser=argparse.ArgumentParser(description='Plot results for Move Number vs Error rate')
-parser.add_argument('--pgn', dest='file',type=str, help='input file')
+parser.add_argument('--file', dest='file',type=str, help='input file')
 parser.add_argument('--no-elolayer', dest='elolayer', action='store_false')
 parser.add_argument('--no-piecelayer', dest='piecelayer', action='store_false')
 parser.add_argument('--no-multilayer', dest='multilayer', action='store_false')
@@ -27,8 +26,6 @@ if args.multilayer:
 else:
 	bitboard_to_image = convert_bitboard_to_image_1
 	flip_color = flip_color_1
-
-
 
 #max_len = max([len(game) for game in movelists])
 max_len = 500
@@ -95,8 +92,8 @@ for game in pgn.GameIterator(args.file):
 				# board_images.append(im)
 
 				move = (from_coords,to_coords)
-				#pred_move = get_move_prediction(board_image)
-				pred_move = move
+				pred_move = Play.get_move_prediction(im, 'play/models')
+				#pred_move = move
 				if pred_move == move:
 					predictions[move_index]=(predictions[move_index][0]+1,predictions[move_index][1]+1)
 				else:

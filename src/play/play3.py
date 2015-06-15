@@ -50,13 +50,13 @@ parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=True)
 parser.set_defaults(piecelayer=True)
 parser.set_defaults(multilayer=True)
-args = parser.parse_args()
+args = parser.parse_known_args()
 
-if args.elo_layer:
-    elo_layer = ((args.elo-2000.0)/1255.0) * np.ones((1,8,8),dtype=np.float32)
+#if args.elo_layer:
+elo_layer = ((3255-2000.0)/1255.0) * np.ones((1,8,8),dtype=np.float32)
 #elo_layer = np.ones((1,8,8),dtype=np.float32)
-against = args.against
-
+#against = args.against
+against = 'sunfish'
 trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
 CHECKMATE_SCORE = 10e6  
