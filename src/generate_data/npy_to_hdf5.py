@@ -1,3 +1,9 @@
+"""
+Convert npy or npz files to hdf5 format.
+
+Author: Ashudeep Singh
+Date: May 15, 2015
+"""
 from __future__ import print_function
 import numpy as np
 import h5py as h5
@@ -11,21 +17,34 @@ parser.add_argument('--odir', type=str, default='', help='The output hdf5 data d
 parser.add_argument('--dtype', type=str, default='', help='The datatype for the h5py data')
 parser.add_argument('-v', dest='verbose', action='store_true')
 parser.add_argument('--single', dest='single_file', action= 'store_true')
-parser.add_argument('--shuffle', dest='shuffle', action='store_false')
+parser.add_argument('--no-shuffle', dest='shuffle', action='store_false')
 parser.add_argument('--elo_layer', dest='elo_layer', action='store_true')
+parser.add_argument('--multi', dest='multi_layer', action='store_true')
+parser.add_argument('--piecelayer', dest='piece_layer', action='store_true')
 parser.set_defaults(verbose=False)
 parser.set_defaults(single_file=False)
 parser.set_defaults(shuffle=True)
 parser.set_defaults(elo_layer=False)
+parser.set_defaults(multi_layer=False)
+parser.set_defaults(piece_layer=False)
 args = parser.parse_args()
 
 
 if args.elo_layer:
-	chunk_size = (100, 7, 8, 8)
-	max_shape = (None, 7, 8, 8)
+	dim = 7
 else:
-	chunk_size = (100, 6, 8, 8)
-	max_shape = (None, 6, 8, 8)
+	dim = 6
+if args.multi_layer:
+	dim+=6
+if args.piece_layer:
+	dim2=dim+1
+else:
+	dim2 = dim
+
+chunk_size = (100, dim, 8, 8)
+chunk_size_move = (100, dim2, 8, 8)
+max_shape = (None, dim, 8, 8)
+max_shape_move = (None, dim2, 8, 8)
 
 if args.dtype:
 	dtype = args.dtype
@@ -140,7 +159,7 @@ if args.single_file:
 		move_label_cur = np.load(INPUT_DIR+"/"+move_label_files[i][0])
 		f[i].create_dataset('data', data=move_data_cur ,
 			dtype = dtype ,
-			chunks=chunk_size, maxshape= max_shape)
+			chunks=chunk_size_move, maxshape= max_shape_move)
 		f[i].create_dataset('label', data=move_label_cur, 
 			dtype = dtype,
 			chunks= (100,), maxshape=(None,))
@@ -182,16 +201,21 @@ else:
 		listf = open(OUTPUT_DIR+"/piece.txt","a")
 		listf.write(os.getcwd()+"/"+OUTPUT_DIR+"/"+piece_data_files[i].split('.')[0]+'.h5\n')
 		listf.close()
+		if ".npz" in piece_data_files[i]:
+			piece_data_cur= piece_data_cur['arr_0']
+			piece_label_cur = piece_label_cur['arr_0']
 		if args.shuffle:
 			piece_data_cur, piece_label_cur = shuffle_in_unison_inplace(
 				piece_data_cur, piece_label_cur)
 		f.create_dataset('data', data=piece_data_cur, 
 			dtype = dtype,
 			chunks=chunk_size	, 
-			maxshape= max_shape)
+			maxshape= max_shape,
+			compression='gzip')
 		f.create_dataset('label', data=piece_label_cur, 
 			dtype = dtype,
-			chunks=(100,), maxshape=(None,))
+			chunks=(100,), maxshape=(None,),
+			compression='gzip')
 		f.close()
 	#Cleanup things
 	end = timeit.default_timer()
@@ -208,16 +232,26 @@ else:
 			listf = open(OUTPUT_DIR+"/move"+str(j+1)+".txt","a")
 			listf.write(os.getcwd()+'/'+OUTPUT_DIR+'/'+move_data_files[j][i].split('.')[0]+'.h5\n')
 			listf.close()
+			'''
+			If the data is from an npz file it will be compressed and in form
+			of different objects under the same dictionary. 
+			Just unpacking it.
+			'''
+			if ".npz" in piece_data_files[i]:
+				data_cur= data_cur['arr_0']
+				label_cur = label_cur['arr_0']
 			if args.shuffle:
 				data_cur, label_cur = shuffle_in_unison_inplace(
 					data_cur, label_cur)
 			f.create_dataset('data', data=data_cur, 
 				dtype = dtype,
-				chunks=chunk_size	, 
-				maxshape= max_shape)
+				chunks=chunk_size_move	, 
+				maxshape= max_shape_move,
+				compression='gzip')
 			f.create_dataset('label', data=label_cur, 
 				dtype = dtype,
-				chunks=(100,), maxshape=(None,))
+				chunks=(100,), maxshape=(None,),
+				compression='gzip')
 			f.close()
 	#Cleanup things
 	end = timeit.default_timer()

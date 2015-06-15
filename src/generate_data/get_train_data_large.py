@@ -1,6 +1,6 @@
 """
 This file reads the pgn files one game at a time to 
-store the X, y arrays into npy files. 
+store the X, y arrays into npz files. 
 Its much more suitable for large data which cannot 
 fit into memory all at once.
 
@@ -27,20 +27,40 @@ parser.add_argument('--elo', dest='elo_layer', action='store_true',
 	help='Whether to include ELO rating layer or not')
 parser.add_argument('--C', type=float, default=1255, 
 	help='Divide the ELO rating minus Min ELO rating by this value')
+parser.add_argument('--partsize', type=int, default=2500, 
+	help='Number of games to be dumped into 1 npz file.')
+parser.add_argument('--multi', dest='multiple_layers', action='store_true',
+	help='Use multiple layers for a single piece to get (8,8,12) size \
+	image per board. Default: False.')
+parser.add_argument('--piecelayer', dest='piece_layer', action='store_true',
+	help='Append a layer with the piece being played marked as 1 for the move\
+	network data.')
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
+parser.set_defaults(multiple_layers=False)
+parser.set_defaults(piece_layer=False)
 args = parser.parse_args()
 
 if args.elo_layer:
 	elo_layer = True
 else:
 	elo_layer = False
+
 min_elo = args.minelo
 PGN_DATA_DIR = args.dir
 TRAIN_DATA_DIR = args.odir
 if not os.path.isdir(TRAIN_DATA_DIR):
 	os.mkdir(os.getcwd()+"/"+TRAIN_DATA_DIR)
-NUM_GAMES = 10000
+
+NUM_GAMES = 2500
+
+#assign the correct functions from util.py
+if args.multiple_layers:
+	bitboard_to_image = convert_bitboard_to_image_2
+	flip_color = flip_color_2
+else:
+	bitboard_to_image = convert_bitboard_to_image_1
+	flip_color = flip_color_1
 
 print "Started reading PGN files in directory %s"%PGN_DATA_DIR
 game_index = 0
@@ -60,29 +80,29 @@ for f in os.listdir(PGN_DATA_DIR):
 					print "Saving data for %d-%d games.."%(game_index-NUM_GAMES,game_index)
 
 					print "Saving X array..."
-					output = TRAIN_DATA_DIR+'/X_%d_%d.npy' % (game_index-NUM_GAMES,game_index)
+					output = TRAIN_DATA_DIR+'/X_%d_%d.npz' % (game_index-NUM_GAMES,game_index)
 					X = np.array(X).astype(np.float32)
-					np.save(output, X)
+					np.savez_compressed(output, X)
 
 					print "Saving y array..."
-					output = TRAIN_DATA_DIR+'/y_%d_%d.npy' % (game_index-NUM_GAMES,game_index)
+					output = TRAIN_DATA_DIR+'/y_%d_%d.npz' % (game_index-NUM_GAMES,game_index)
 					y = np.array(y).astype(np.float32)
-					np.save(output, y)
+					np.savez_compressed(output, y)
 
 					for i in xrange(6):
 						output_array = "p%d_X" % (i + 1)
 						print "Saving %s array..." % output_array
 						output_array = eval(output_array)
 						output_array = np.array(output_array).astype(np.float32)
-						output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npy' % (i + 1, game_index-NUM_GAMES,game_index) 
-						np.save(output, output_array)
+						output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
+						np.savez_compressed(output, output_array)
 
 						output_array = "p%d_y" % (i + 1)
 						print "Saving %s array..." % output_array
 						output_array = eval(output_array)
 						output_array = np.array(output_array).astype(np.float32)
-						output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npy' % (i + 1, game_index-NUM_GAMES,game_index) 
-						np.save(output, output_array)
+						output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
+						np.savez_compressed(output, output_array)
 					end = timeit.default_timer()
 					print "Saved arrays into directory %s in %fs"%(TRAIN_DATA_DIR, end-start)
 
@@ -120,12 +140,12 @@ for f in os.listdir(PGN_DATA_DIR):
 					to_coords = chess_coord_to_coord2d(to_chess_coords)
 								
 					if move_index % 2 == 0:
-						im = convert_bitboard_to_image(board)
+						im = bitboard_to_image(board)
 						skip = skip_white
 						if elo_layer:
 							last_layer = white_elo_layer*np.ones((1,8,8))
 					else:
-						im = flip_image(convert_bitboard_to_image(board))
+						im = flip_image(bitboard_to_image(board))
 						im = flip_color(im)
 						from_coords = flip_coord2d(from_coords)
 						to_coords = flip_coord2d(to_coords)
@@ -133,9 +153,9 @@ for f in os.listdir(PGN_DATA_DIR):
 						if elo_layer:
 							last_layer = black_elo_layer*np.ones((1,8,8))
 
-					index_piece = np.where(im[from_coords] != 0)
+					index_piece = np.where(im[from_coords] == 1)
 					# index_piece denotes the index in PIECE_TO_INDEX
-					index_piece = index_piece[0][0] # ranges from 0 to 5
+					index_piece = index_piece[0][0]/2 # ranges from 0 to 5
 
 					from_coords = flatten_coord2d(from_coords)
 					to_coords = flatten_coord2d(to_coords)
@@ -156,8 +176,14 @@ for f in os.listdir(PGN_DATA_DIR):
 					# Filling the p_X and p_y array
 					p_X = "p%d_X" % (index_piece + 1)
 					p_X = eval(p_X)
-					p_X.append(im)
+
+					if args.piece_layer:
+						piece_layer = np.zeros((1,8,8))
+						piece_layer[0, from_coords/8, from_coords%8] = 1
+						im = np.append(im, piece_layer,axis=0)
 					
+					p_X.append(im)
+
 					p_y = "p%d_y" % (index_piece + 1)
 					p_y = eval(p_y)
 					p_y.append(to_coords)
@@ -169,29 +195,29 @@ start = timeit.default_timer()
 print "Saving data for %d-%d games.."%(game_index - game_index%NUM_GAMES,game_index)
 
 print "Saving X array..."
-output = TRAIN_DATA_DIR+'/X_%d_%d.npy' % (game_index - game_index%NUM_GAMES,game_index)
+output = TRAIN_DATA_DIR+'/X_%d_%d.npz' % (game_index - game_index%NUM_GAMES,game_index)
 X = np.array(X).astype(np.float32)
-np.save(output, X)
+np.savez_compressed(output, X)
 
 print "Saving y array..."
-output = TRAIN_DATA_DIR+'/y_%d_%d.npy' % (game_index - game_index%NUM_GAMES,game_index)
+output = TRAIN_DATA_DIR+'/y_%d_%d.npz' % (game_index - game_index%NUM_GAMES,game_index)
 y = np.array(y).astype(np.float32)
-np.save(output, y)
+np.savez_compressed(output, y)
 
 for i in xrange(6):
 	output_array = "p%d_X" % (i + 1)
 	print "Saving %s array..." % output_array
 	output_array = eval(output_array)
 	output_array = np.array(output_array).astype(np.float32)
-	output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npy' % (i + 1, game_index - game_index%NUM_GAMES,game_index) 
-	np.save(output, output_array)
+	output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES,game_index) 
+	np.savez_compressed(output, output_array)
 
 	output_array = "p%d_y" % (i + 1)
 	print "Saving %s array..." % output_array
 	output_array = eval(output_array)
 	output_array = np.array(output_array).astype(np.float32)
-	output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npy' % (i + 1, game_index - game_index%NUM_GAMES ,game_index) 
-	np.save(output, output_array)
+	output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES ,game_index) 
+	np.savez_compressed(output, output_array)
 end = timeit.default_timer()
 print "Saved arrays into directory %s in %fs"%(TRAIN_DATA_DIR, end-start)
 print "Done with reading %d games"%(game_index+1)
