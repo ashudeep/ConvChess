@@ -1,0 +1,17 @@
+net: "./caffe_nets/piece_2000+_elolayer_small.prototxt"
+test_iter: 100
+test_interval: 10000
+base_lr: 0.01
+lr_policy: "step"
+solver_type: ADAGRAD
+gamma: 0.5
+stepsize: 20000
+display: 2000
+max_iter: 300000
+#momentum: 0.9
+#weight_decay: 0.999
+snapshot: 10000
+snapshot_prefix: "./piece_2000+_elolayer_small_/PIECE_train"
+solver_mode: GPU
+snapshot_after_train: true
+#device_id : 0
