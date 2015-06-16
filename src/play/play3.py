@@ -31,32 +31,36 @@ import argparse
 
 parser=argparse.ArgumentParser\
     (description='Plays one (or more) games against a human or the sunfish AI.')
-parser.add_argument('--dir', type=str, default='models', help='The models directory')
-parser.add_argument('--odir', type=str, help='The output to dump \
-    gameplays and statistics of the games',
-    default='models')
-parser.add_argument('--no-piecelayer', dest='piecelayer', action='store_false',
-    help='Whether to include piece layer or not.')
-parser.add_argument('--no-multilayer', dest='multilayer', action='store_false',
-    help='Whether to include multiple layers for enemies or not.')
-#parser.add_argument('-v', dest='verbose', action='store_true')
-parser.add_argument('--elo', type=int, default=3255, 
-    help='ELO rating of the player you want to imitate.')
-parser.add_argument('--no-elolayer', dest='elo_layer', action='store_false',
-    help='Whether to include ELO rating layer or not')
-parser.add_argument('--against', type=str, default='sunfish',
-    help='The (artificial) intelligence to play against. Currently either sunfish or Human player.')
-parser.set_defaults(verbose=False)
-parser.set_defaults(elo_layer=True)
-parser.set_defaults(piecelayer=True)
-parser.set_defaults(multilayer=True)
-args = parser.parse_known_args()
 
-#if args.elo_layer:
-elo_layer = ((3255-2000.0)/1255.0) * np.ones((1,8,8),dtype=np.float32)
+def add_arguments(parser):
+    parser.add_argument('--dir', type=str, default='models', help='The models directory')
+    parser.add_argument('--odir', type=str, help='The output to dump \
+        gameplays and statistics of the games',
+        default='models')
+    parser.add_argument('--no-piecelayer', dest='piecelayer', action='store_false',
+        help='Whether to include piece layer or not.')
+    parser.add_argument('--no-multilayer', dest='multilayer', action='store_false',
+        help='Whether to include multiple layers for enemies or not.')
+    #parser.add_argument('-v', dest='verbose', action='store_true')
+    parser.add_argument('--elo', type=int, default=3255, 
+        help='ELO rating of the player you want to imitate.')
+    parser.add_argument('--no-elolayer', dest='elo_layer', action='store_false',
+        help='Whether to include ELO rating layer or not')
+    parser.add_argument('--against', type=str, default='sunfish',
+        help='The (artificial) intelligence to play against. Currently either sunfish or Human player.')
+    parser.set_defaults(verbose=False)
+    parser.set_defaults(elo_layer=True)
+    parser.set_defaults(piecelayer=True)
+    parser.set_defaults(multilayer=True)
+
+add_arguments(parser)
+args = parser.parse_args()
+
+if args.elo_layer:
+    elo_layer = ((3255-2000.0)/1255.0) * np.ones((1,8,8),dtype=np.float32)
 #elo_layer = np.ones((1,8,8),dtype=np.float32)
-#against = args.against
-against = 'sunfish'
+against = args.against
+#against = 'sunfish'
 trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
 CHECKMATE_SCORE = 10e6  
@@ -239,6 +243,7 @@ def pos_coords_to_2dcoord(fro):
     return (i,j)
 
 def get_top_moves(img, k, vals=True):
+    #better to call get_move_prediction(img) if k=1
     dummy = np.ones((1,), dtype='float32')
     net = trained_models['Piece']
     net.set_input_arrays(np.array([img], dtype=np.float32),dummy)
@@ -457,9 +462,8 @@ class Computer(Player):
         
         return gn_new
 
-def get_move_prediction(im, dir, method='TopProb'):
+def get_move_prediction(im, method='TopProb'):
     #method can be one of 'TopProb', 'MaxProb', 'InterleavedSearch'
-    load_models(dir)
     if method=='TopProb':
         move_str = predictMove_TopProbMethod(im)
     elif method=='MaxMethod':
@@ -473,7 +477,7 @@ def get_move_prediction(im, dir, method='TopProb'):
     to_chess_coords = move_str[2:4]
     from_coords = chess_coord_to_coord2d(from_chess_coords)
     to_coords = chess_coord_to_coord2d(to_chess_coords)
-    return (from_coords, to_coords)
+    return (from_coords[0]*8+from_coords[1], to_coords[0]*8+to_coords[1])
 
 
 class Human(Player):
