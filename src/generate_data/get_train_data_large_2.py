@@ -161,6 +161,7 @@ for f in os.listdir(PGN_DATA_DIR):
 					to_coords = flatten_coord2d(to_coords)
 
 					im = np.rollaxis(im, 2, 0) # to get into form (C, H, W)
+					
 					if elo_layer:
 						im = np.append(im, last_layer, axis=0)
 

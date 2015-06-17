@@ -63,7 +63,7 @@ against = args.against
 #against = 'sunfish'
 trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
-CHECKMATE_SCORE = 10e6  
+CHECKMATE_SCORE = 1e6  
 
 def load_models(dir):
     model_names = ['piece', 'pawn', 'rook', 'knight', 'bishop', 'queen', 'king']
@@ -135,7 +135,7 @@ def predictMove_MaxMethod(img):
 def topk(a,k, vals=False):
     top_ids = np.argpartition(a, -k)[-k:]
     if vals:
-        return zip(top_ids, a[top_ids])
+        return [(i,j) for i,j in zip(top_ids, a[top_ids]) if j>0]
     else:
         return top_ids
 
@@ -242,44 +242,50 @@ def pos_coords_to_2dcoord(fro):
     j = j-1
     return (i,j)
 
-def get_top_moves(img, k, vals=True):
+def get_top_moves(img, k, vals=True, valType='prob'):
+    #valType can be 'prob' or 'fc1'
     #better to call get_move_prediction(img) if k=1
     dummy = np.ones((1,), dtype='float32')
     net = trained_models['Piece']
     net.set_input_arrays(np.array([img], dtype=np.float32),dummy)
     res = net.forward()
-    probs = res['prob']
-    if args.multilayer:
-        probs = clip_pieces_single_2(probs, img[0:12])
-    else:
-        probs = clip_pieces_single(probs, img[0:6])
-    #print probs
-    probs = probs.flatten()
-    cumulative_probs = np.zeros((64,64))    
-    for i, piece_pos in enumerate(topk(probs,k)):
-        if probs[piece_pos]>0:
-            i1,i2 = scoreToCoordinateIndex(piece_pos)
-            if args.multilayer:
-                pieceType = INDEX_TO_PIECE[np.argmax(img[0:12, i1, i2])/2]
-            else:
-                pieceType = INDEX_TO_PIECE[np.argmax(img[0:6, i1, i2])]
-            if args.piecelayer:
-                piece_layer = np.zeros((1,8,8))
-                piece_layer[0,i1,i2] = 1
-                img2 = np.append(img, piece_layer, axis=0)
-            else:
-                img2 = img
-            model = trained_models[pieceType]
-            model.set_input_arrays(np.array([img2], dtype=np.float32),dummy)
-            res2 = model.forward()
-            move_prob = res2['prob']
-            #print move_prob
-            if args.multilayer:
-                move_prob = clip_moves_2(move_prob, img2[0:12], (i1,i2))
-            else:
-                move_prob = clip_moves(move_prob, img2[0:6], (i1,i2))
-            #print move_prob
-            cumulative_probs[piece_pos] = move_prob*probs[piece_pos]
+    if valType=='prob':
+        probs = res['prob']
+        if args.multilayer:
+            probs = clip_pieces_single_2(probs, img[0:12])
+        else:
+            probs = clip_pieces_single(probs, img[0:6])
+        #print probs
+        probs = probs.flatten()
+        cumulative_probs = np.zeros((64,64))    
+        for i, piece_pos in enumerate(topk(probs,k)):
+            if probs[piece_pos]>0:
+                i1,i2 = scoreToCoordinateIndex(piece_pos)
+                if args.multilayer:
+                    pieceType = INDEX_TO_PIECE[np.argmax(img[0:12, i1, i2])/2]
+                else:
+                    pieceType = INDEX_TO_PIECE[np.argmax(img[0:6, i1, i2])]
+                if args.piecelayer:
+                    piece_layer = np.zeros((1,8,8))
+                    piece_layer[0,i1,i2] = 1
+                    img2 = np.append(img, piece_layer, axis=0)
+                else:
+                    img2 = img
+                model = trained_models[pieceType]
+                model.set_input_arrays(np.array([img2], dtype=np.float32),dummy)
+                res2 = model.forward()
+                move_prob = res2['prob']
+                #print move_prob
+                if args.multilayer:
+                    move_prob = clip_moves_2(move_prob, img2[0:12], (i1,i2))
+                else:
+                    move_prob = clip_moves(move_prob, img2[0:6], (i1,i2))
+                #print move_prob
+                cumulative_probs[piece_pos] = move_prob*probs[piece_pos]
+    elif valType=='fc1':
+        # vals = resnet.blobs['fc1'].data
+        # if args.multilayer:
+        raise NotImplementedError("typeVal=fc1 is still unimplemented.")
     #print cumulative_probs
     pos = topk(cumulative_probs.flatten(), k)
     moves = [(p/64,p%64) for p in pos]
@@ -293,39 +299,74 @@ def get_top_moves(img, k, vals=True):
         return str_moves
 
 
-def negamax(pos, depth, alpha, beta, color, maxm):
+def negamax(im, depth, alpha, beta, color, maxm):
     '''
     Derived from deep-pink.
     Currently very slow. Just need to use evaluate moves to get the
     cumulative_probs and then use it to choose the top few moves further.
     '''
-    if args.multilayer:
-        im = convert_bitboard_to_image_2(pos_board_to_bitboard(pos.board))
-    else:
-        im = convert_bitboard_to_image(pos_board_to_bitboard(pos.board))
-    im = np.rollaxis(im,2,0)
-    if args.elo_layer:
-        im = np.append(im, elo_layer, axis=0)
+    #print pos.board
+    # if args.multilayer:
+    #     im = convert_bitboard_to_image_2(pos_board_to_bitboard(pos.board))
+    # else:
+    #     im = convert_bitboard_to_image(pos_board_to_bitboard(pos.board))
+    # im = flip_image(im)
+    # if args.multilayer:
+    #     im = flip_color_2(im)
+    # else:
+    #     im = flip_color_1(im)
+    # im = np.rollaxis(im,2,0)
+    if color == - 1:
+        im = im[:,:,::-1]
+    # if args.elo_layer:
+    #     im = np.append(im, elo_layer, axis=0)
     top_moves = get_top_moves(im, maxm)
     #print top_moves
     best_value = float('-inf')
     best_move = None
-
     for move, val in top_moves:
         if depth == 1:
             value = val
             if val == 0: #no move possible
-                value = 1/CHECKMATE_SCORE
+                value = value/CHECKMATE_SCORE
         else:
-            crdn_move =  (sunfish.parse(move[0:2]), sunfish.parse(move[2:4]))
+            # crdn_move =  (sunfish.parse(move[0:2]), sunfish.parse(move[2:4]))
             #print crdn_move, move, val, color
             try:
-                pos_child = pos.move(crdn_move)
+                fro = chess_coord_to_coord2d(move[0:2])
+                to = chess_coord_to_coord2d(move[2:4])
+                if args.multilayer:
+                    which_layer = np.where(im[0:12,fro[0],fro[1]]==1)[0]
+                    if not which_layer: continue
+                    which_layer=which_layer[0]
+                    try:
+                        if_opponent_piece = np.where(im[0:12,to[0],to[1]]==1)[0][0]
+                    except IndexError:
+                        if_opponent_piece = None
+                else:
+                    which_layer = np.where(im[0:6, fro[0],fro[1]]==1)
+                    if not which_layer: continue
+                    which_layer=which_layer[0][0]
+                    try:
+                        if_opponent_piece = np.where(im[0:6,to[0],to[1]]==1)[0][0]
+                    except IndexError:
+                        if_opponent_piece = None
+                #make move
+                im2 = np.copy(im)
+                im2[which_layer,to[0],to[1]]=1
+                im2[which_layer,fro[0],fro[1]]=0
+                if if_opponent_piece:
+                    im2[if_opponent_piece,to[0],to[1]]=0
+                pos_child = np.copy(im2)
+                #pos_child = pos.move(crdn_move)
             except KeyError:
                 #means the move isn't possible
-                continue        
-            if pos_child.board.find('K') == -1:
-                value = CHECKMATE_SCORE
+                continue
+            if args.multilayer: kings_layer = 10
+            else:   kings_layer=5        
+            if not np.any(pos_child[kings_layer,:,:]):
+                value = 1.0/CHECKMATE_SCORE
+                print "checkmate is going to happen"
             neg_value, _ = negamax(pos_child, depth-1, -beta, -alpha, -color, maxm)
             value = val/neg_value
         if value > best_value:
@@ -421,7 +462,16 @@ class MySearch(Player):
 
         depth = self._maxd
         t0 = time.time()
-        best_value, best_move = negamax(self._pos, depth, alpha, beta, 1, maxm=self._maxm)
+        bb = pos_board_to_bitboard(self._pos.board)
+        if args.multilayer:
+            im = convert_bitboard_to_image_2(bb)
+        else:
+            im = convert_bitboard_to_image(bb)
+        im = np.rollaxis(im,2,0)
+        if args.elo_layer:
+            im = np.append(im,elo_layer,axis=0)
+        print im.shape
+        best_value, best_move = negamax(im, depth, alpha, beta, 1, maxm=self._maxm)
         best_move = (sunfish.parse(best_move[0:2]), sunfish.parse(best_move[2:4]))
         crdn = sunfish.render(best_move[0]) + sunfish.render(best_move[1])
         print depth, best_value, crdn, time.time() - t0
@@ -471,7 +521,7 @@ def get_move_prediction(im, method='TopProb'):
     elif method=='InterleavedSearch':
         raise NotImplementedError('Not yet implemented')
     else:
-        print "use a supported method"
+        print "Please use a supported method"
         exit(1)
     from_chess_coords = move_str[:2]
     to_chess_coords = move_str[2:4]
@@ -543,9 +593,9 @@ class Sunfish(Player):
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
-    maxd = random.randint(2,5)
-    maxm = random.randint(1,10)
+    maxn =  10 #** (1.0 + random.random() * 2.0) # max nodes for sunfish
+    maxd = 2#random.randint(2,5)
+    maxm = 30#random.randint(1,10)
     print 'maxn %f' % (maxn)
     print 'maxm %d' % (maxm)
     print 'maxd %d'% (maxd)
@@ -604,5 +654,5 @@ def play():
 
 if __name__ == '__main__':
     load_models(args.dir)
-    for i in xrange(10000):
-        play()
+    #for i in xrange(10000):
+    play()

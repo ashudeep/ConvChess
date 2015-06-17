@@ -100,11 +100,19 @@ def convert_image_to_bitboard_2(im):
 def flip_image(im):
 	return im[::-1, :, :]
 
-def flip_color(im):
+def flip_color_1(im):
 	indices_white = np.where(im == 1)
 	indices_black = np.where(im == -1)
 	im[indices_white] = -1
 	im[indices_black] = 1
+	return im
+
+def flip_color_2(im):
+	temp = np.zeros((8,8))
+	for i in xrange(im.shape[2]/2):
+		temp[:] = im[:,:,2*i]
+		im[:,:,2*i] = im[:,:,2*i+1]
+		im[:,:,2*i+1] = temp[:]
 	return im
 
 def flip_coord2d(coord2d):
