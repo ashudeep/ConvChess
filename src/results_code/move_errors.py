@@ -35,9 +35,11 @@ flip_color = flip_color_2
 # 	flip_color = flip_color_1
 
 #max_len = max([len(game) for game in movelists])
-max_len = 500
-predictions = [(0,0,0,0,0) for i in xrange(max_len)] #holds the top-1,3,5,10 predictions
-hits = [(0,0) for i in xrange(max_len)]
+max_len = 1000
+correct_preds = np.zeros((max_len,30))
+num_moves_arr = np.zeros(max_len)
+#[[0 for j in xrange(30)] for i in xrange(max_len)] #holds the top-1,3,5,10 predictions
+#hits = [(0,0) for i in xrange(max_len)]
 
 # board_images_lists = []
 # legal_moves_lists = []
@@ -113,7 +115,7 @@ for game in pgn.GameIterator(f):
 				move = (from_coords,to_coords)
 				try:
 					#pred_moves = Play.get_move_prediction(im)
-					pred_moves_vals = Play.get_top_moves(im, k=10)
+					pred_moves_vals = Play.get_top_moves(im, k=30, clipping=False)
 					pred_moves = []
 					for (m, v) in pred_moves_vals:
 						from_chess_coords = m[:2]
@@ -124,23 +126,18 @@ for game in pgn.GameIterator(f):
 				except KeyboardInterrupt:
 					stop = True
 					break
+				#print pred_moves, move
 				#print pred_move, move, lmlist
 				#pred_move = move
-				(a,b,c,d,e) = predictions[move_index]
+				#(a,b,c,d,e,f,g) = predictions[move_index]
+				num_moves_arr[move_index]+=1
 				try:
 					pos = pred_moves.index(move)
-					if pos<1:
-						predictions[move_index]=(a+1,b+1,c+1,d+1,e+1)
-					elif pos<3:
-						predictions[move_index]=(a,b+1,c+1,d+1,e+1)
-					elif pos<5:
-						predictions[move_index]=(a,b,c+1,d+1,e+1)
-					elif pos<10:
-						predictions[move_index]=(a,b,c,d+1,e+1)
-					else:
-						predictions[move_index]=(a,b,c,d,e+1)
+					for j in range(pos,30):
+						correct_preds[move_index,j]+=1
 				except ValueError:
-					predictions[move_index]=(a,b,c,d,e+1)
+					pass
+					
 				# if index :
 				# 	predictions[move_index]=(a+1,b+1,c+1,d+1,e+1)
 				# elif move in pred_moves[:3]:
@@ -160,26 +157,52 @@ for game in pgn.GameIterator(f):
 	# board_images_lists.append(board_images)
 	# legal_moves_lists.append(legal_moves_list)
 
-
+#print correct_preds
 #max_len = max([len(game) for game in movelists])
 max_len = max_len - 2
-predictions = predictions[:max_len]
-#hits = hits[:max_len]
-# print max_len
-# print predictions, hits
-
-accuracies = [[float(a)/e, float(b)/e, float(c)/e, float(d)/e] for (a,b,c,d,e) in predictions]
+correct_preds = correct_preds[:max_len]
+num_moves_arr = num_moves_arr[:max_len]
+accuracies = correct_preds/num_moves_arr[:,None]
 import matplotlib.pyplot as plt
-accuracies = np.array(accuracies)
-plt.plot(accuracies[:,0],'k', label='Accuracy at k=1')
-plt.plot(accuracies[:,1], 'b', label='Accuracy at k=3')
-plt.plot(accuracies[:,2], 'g', label='Accuracy at k=5')
-plt.plot(accuracies[:,3], 'r', label='Accuracy at k=10')
-plt.legend( loc='upper left', numpoints = 1 )
+colors = ['k','b','g','r','m','c','y']
+for j,i in enumerate([1,5,10,20,30]):
+	plt.plot(accuracies[:,i-1],colors[j-1], label='Accuracy at k=%d'%i)
+plt.legend(loc='upper right', numpoints =1)
 plt.xlabel('Move Number in the game')
 plt.ylabel('Accuracy')
 plt.suptitle('Accuracy vs Move number for %d games'%num_games, fontsize=20, family='serif')
 plt.show()
+
+mean_accuracies = sum(correct_preds,1)/sum(num_moves_arr)
+plt.plot(range(1,31),mean_accuracies,'g^-')
+plt.xlabel('Number of guesses')
+plt.ylabel('Mean Accuracy')
+plt.show()
+
+#hits = hits[:max_len]
+# print max_len
+# print predictions, hits
+
+# accuracies = [[float(a)/g, float(b)/g, float(c)/g, float(d)/g, float(e)/g, float(f)/g] for (a,b,c,d,e,f,g) in predictions]
+# import matplotlib.pyplot as plt
+# accuracies = np.array(accuracies)
+# plt.plot(accuracies[:,0],'k', label='Accuracy at k=1')
+# plt.plot(accuracies[:,1], 'b', label='Accuracy at k=3')
+# plt.plot(accuracies[:,2], 'g', label='Accuracy at k=5')
+# plt.plot(accuracies[:,3], 'r', label='Accuracy at k=10')
+# plt.plot(accuracies[:,4], 'c', label='Accuracy at k=20')
+# plt.plot(accuracies[:,5], 'y', label='Accuracy at k=30')
+# plt.legend( loc='upper right', numpoints = 1 )
+# plt.xlabel('Move Number in the game')
+# plt.ylabel('Accuracy')
+# plt.suptitle('Accuracy vs Move number for %d games'%num_games, fontsize=20, family='serif')
+# plt.show()
+
+# predictions = np.array(predictions, dtype='float32')
+# predictions=sum(predictions)
+# [a,b,c,d,e,f,g] =predictions
+# mean_accuracies = [a/g,b/g,c/g,d/g,e/g,f/g]
+# print mean_accuracies
 
 # hitrates = [float(hits[i][0])/hits[i][1] for i in xrange(max_len)]
 # plt.plot(hitrates)

@@ -29,6 +29,8 @@ parser.add_argument('--C', type=float, default=1255,
 	help='Divide the ELO rating minus Min ELO rating by this value')
 parser.add_argument('--partsize', type=int, default=2500, 
 	help='Number of games to be dumped into 1 npz file.')
+parser.add_argument('--history', type=int, default=1, 
+	help='Number of chess boards from history required.')
 parser.add_argument('--multi', dest='multiple_layers', action='store_true',
 	help='Use multiple layers for a single piece to get (8,8,12) size \
 	image per board. Default: False.')

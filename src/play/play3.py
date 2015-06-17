@@ -132,10 +132,13 @@ def predictMove_MaxMethod(img):
     return coord2d_to_chess_coord(coordinate)+\
         coord2d_to_chess_coord(scoreToCoordinateIndex(pred_pos))
 
-def topk(a,k, vals=False):
+def topk(a,k, vals=False, threshold=float('-inf')):
     top_ids = np.argpartition(a, -k)[-k:]
     if vals:
-        return [(i,j) for i,j in zip(top_ids, a[top_ids]) if j>0]
+        if threshold!=float('-inf'):
+            return [(i,j) for i,j in zip(top_ids, a[top_ids]) if j>threshold]
+        else:
+            return zip(top_ids,a[top_ids])
     else:
         return top_ids
 
@@ -242,7 +245,7 @@ def pos_coords_to_2dcoord(fro):
     j = j-1
     return (i,j)
 
-def get_top_moves(img, k, vals=True, valType='prob'):
+def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     #valType can be 'prob' or 'fc1'
     #better to call get_move_prediction(img) if k=1
     dummy = np.ones((1,), dtype='float32')
@@ -251,9 +254,9 @@ def get_top_moves(img, k, vals=True, valType='prob'):
     res = net.forward()
     if valType=='prob':
         probs = res['prob']
-        if args.multilayer:
+        if args.multilayer and clipping:
             probs = clip_pieces_single_2(probs, img[0:12])
-        else:
+        elif clipping:
             probs = clip_pieces_single(probs, img[0:6])
         #print probs
         probs = probs.flatten()
@@ -276,9 +279,9 @@ def get_top_moves(img, k, vals=True, valType='prob'):
                 res2 = model.forward()
                 move_prob = res2['prob']
                 #print move_prob
-                if args.multilayer:
+                if args.multilayer and clipping:
                     move_prob = clip_moves_2(move_prob, img2[0:12], (i1,i2))
-                else:
+                elif clipping:
                     move_prob = clip_moves(move_prob, img2[0:6], (i1,i2))
                 #print move_prob
                 cumulative_probs[piece_pos] = move_prob*probs[piece_pos]
@@ -298,7 +301,7 @@ def get_top_moves(img, k, vals=True, valType='prob'):
     else:
         return str_moves
 
-
+@lru_cache(maxsize=None)
 def negamax(im, depth, alpha, beta, color, maxm):
     '''
     Derived from deep-pink.
