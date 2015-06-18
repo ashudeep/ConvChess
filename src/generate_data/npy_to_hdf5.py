@@ -62,7 +62,7 @@ if args.odir:
 else:
 	OUTPUT_DIR = INPUT_DIR+"_h5"
 
-if os.path.isdir(OUTPUT_DIR) 
+if os.path.isdir(OUTPUT_DIR):
 	if not args.force:
 		print("There already exists a folder named %s"%OUTPUT_DIR)
 		print("It could be dangerous to remove the previous data")
