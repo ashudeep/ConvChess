@@ -54,7 +54,7 @@ TRAIN_DATA_DIR = args.odir
 if not os.path.isdir(TRAIN_DATA_DIR):
 	os.mkdir(os.getcwd()+"/"+TRAIN_DATA_DIR)
 
-NUM_GAMES = 2500
+NUM_GAMES = 4000
 
 #assign the correct functions from util.py
 if args.multiple_layers:
@@ -93,9 +93,10 @@ for f in os.listdir(PGN_DATA_DIR):
 
 					for i in xrange(6):
 						output_array = "p%d_X" % (i + 1)
-						print "Saving %s array..." % output_array
+						print "Saving %s array..." % (output_array)
 						output_array = eval(output_array)
 						output_array = np.array(output_array).astype(np.float32)
+						print output_array.shape
 						output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
 						np.savez_compressed(output, output_array)
 
@@ -157,7 +158,10 @@ for f in os.listdir(PGN_DATA_DIR):
 
 					index_piece = np.where(im[from_coords] == 1)
 					# index_piece denotes the index in PIECE_TO_INDEX
-					index_piece = index_piece[0][0]/2 # ranges from 0 to 5
+					if args.multiple_layers:
+						index_piece = index_piece[0][0]/2 # ranges from 0 to 5
+					else:
+						index_piece=index_piece[0][0]
 
 					from_coords = flatten_coord2d(from_coords)
 					to_coords = flatten_coord2d(to_coords)
