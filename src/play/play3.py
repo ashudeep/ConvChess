@@ -27,7 +27,7 @@ import caffe
 import operator
 caffe.set_mode_gpu()
 import argparse
-
+#import functools
 
 parser=argparse.ArgumentParser\
     (description='Plays one (or more) games against a human or the sunfish AI.')
@@ -301,7 +301,7 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     else:
         return str_moves
 
-@lru_cache(maxsize=None)
+#@functools.lru_cache(maxsize=None)
 def negamax(im, depth, alpha, beta, color, maxm):
     '''
     Derived from deep-pink.

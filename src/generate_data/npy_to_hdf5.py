@@ -11,7 +11,7 @@ import sys, os
 import timeit
 import argparse
 parser=argparse.ArgumentParser\
-	(description='ConvNet for learning Chess moves')
+	(description='ConvNet for learning Chess moves',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--dir', type=str, default='', help='The data directory')
 parser.add_argument('--odir', type=str, default='', help='The output hdf5 data directory')
 parser.add_argument('--dtype', type=str, default='', help='The datatype for the h5py data')
@@ -41,10 +41,13 @@ if args.piece_layer:
 else:
 	dim2 = dim
 
+
 chunk_size = (100, dim, 8, 8)
 chunk_size_move = (100, dim2, 8, 8)
 max_shape = (None, dim, 8, 8)
 max_shape_move = (None, dim2, 8, 8)
+
+print(chunk_size, chunk_size_move)
 
 if args.dtype:
 	dtype = args.dtype

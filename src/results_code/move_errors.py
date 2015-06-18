@@ -18,6 +18,8 @@ def add_arguments(parser):
 		help='Divide the ELO rating minus Min ELO rating by this value')
 	parser.add_argument('--saveplot', type=str, default='',
 		help='The path of the file to save the plot to. Use extension also (pdf, png etc.)')
+	parser.add_argument('--skip', type=int, help='skip first these many games.\
+	Ideally a multiple of %d'%NUM_GAMES, default=0)
 	parser.set_defaults(elolayer=True)
 	parser.set_defaults(piecelayer=True)
 	parser.set_defaults(multilayer=True)
@@ -49,7 +51,7 @@ max_elo = 3255
 max_len = 0 
 C=1255
 num_games = 0
-f = "sample.pgn"
+f = "sample2.pgn"
 Play.load_models("play/models")
 stop = False
 for game in pgn.GameIterator(f):
@@ -74,7 +76,10 @@ for game in pgn.GameIterator(f):
 	for move_index, move in enumerate(moves):
 		bar.update(move_index+1)
 		if move[0].isalpha() and not stop: # check if move is SAN
-				from_to_chess_coords = board.parse_san(move)
+				try:
+					from_to_chess_coords = board.parse_san(move)
+				except ValueError:
+					break
 				from_to_chess_coords = str(from_to_chess_coords)
 			
 				from_chess_coords = from_to_chess_coords[:2]
