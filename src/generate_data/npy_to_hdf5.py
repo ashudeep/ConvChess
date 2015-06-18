@@ -21,12 +21,14 @@ parser.add_argument('--no-shuffle', dest='shuffle', action='store_false')
 parser.add_argument('--elo_layer', dest='elo_layer', action='store_true')
 parser.add_argument('--multi', dest='multi_layer', action='store_true')
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true')
+parser.add_argument('-f', dest='force', action='store_true')
 parser.set_defaults(verbose=False)
 parser.set_defaults(single_file=False)
 parser.set_defaults(shuffle=True)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multi_layer=False)
 parser.set_defaults(piece_layer=False)
+parser.set_defaults(force=False)
 args = parser.parse_args()
 
 
@@ -52,7 +54,7 @@ print(chunk_size, chunk_size_move)
 if args.dtype:
 	dtype = args.dtype
 else: 
-	dtype= 'int8'
+	dtype= 'float32'
 
 INPUT_DIR = args.dir
 if args.odir:
@@ -60,11 +62,15 @@ if args.odir:
 else:
 	OUTPUT_DIR = INPUT_DIR+"_h5"
 
-if os.path.isdir(OUTPUT_DIR):
-	print("There already exists a folder named %s"%OUTPUT_DIR)
-	print("It could be dangerous to remove the previous data")
-	print("Either remove manually or rename it before trying again")
-	exit(1)
+if os.path.isdir(OUTPUT_DIR) 
+	if not args.force:
+		print("There already exists a folder named %s"%OUTPUT_DIR)
+		print("It could be dangerous to remove the previous data")
+		print("Either remove manually or rename it before trying again")
+		exit(1)
+	else:
+		import shutil
+		shutil.rmtree(OUTPUT_DIR)
 else:
 	os.mkdir(OUTPUT_DIR)
 
