@@ -37,6 +37,8 @@ parser.add_argument('--multi', dest='multiple_layers', action='store_true',
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true',
 	help='Append a layer with the piece being played marked as 1 for the move\
 	network data.')
+parser.add_argument('--skip', type=int, help='skip first these many games.\
+	Ideally a multiple of %d'%NUM_GAMES)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)
@@ -54,7 +56,7 @@ TRAIN_DATA_DIR = args.odir
 if not os.path.isdir(TRAIN_DATA_DIR):
 	os.mkdir(os.getcwd()+"/"+TRAIN_DATA_DIR)
 
-NUM_GAMES = 2500
+NUM_GAMES = 4000
 
 #assign the correct functions from util.py
 if args.multiple_layers:
@@ -74,6 +76,9 @@ for f in os.listdir(PGN_DATA_DIR):
 			#print PGN_DATA_DIR+"/"+f, game
 			board = chess.Bitboard()
 			moves = game.moves
+			if game_index < args.skip:
+				game_index+=1
+				continue
 			if game_index%NUM_GAMES == 0:
 				if game_index!=0:
 					end = timeit.default_timer()
@@ -93,7 +98,7 @@ for f in os.listdir(PGN_DATA_DIR):
 
 					for i in xrange(6):
 						output_array = "p%d_X" % (i + 1)
-						print "Saving %s array..." % output_array
+						print "Saving %s array..." % (output_array)
 						output_array = eval(output_array)
 						output_array = np.array(output_array).astype(np.float32)
 						output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
@@ -157,7 +162,10 @@ for f in os.listdir(PGN_DATA_DIR):
 
 					index_piece = np.where(im[from_coords] == 1)
 					# index_piece denotes the index in PIECE_TO_INDEX
-					index_piece = index_piece[0][0]/2 # ranges from 0 to 5
+					if args.multiple_layers:
+						index_piece = index_piece[0][0]/2 # ranges from 0 to 5
+					else:
+						index_piece=index_piece[0][0]
 
 					from_coords = flatten_coord2d(from_coords)
 					to_coords = flatten_coord2d(to_coords)
