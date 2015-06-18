@@ -19,7 +19,7 @@ import argparse
 parser=argparse.ArgumentParser\
 	(description='Convert PGN data into numpy arrays of size 6*8*8 with labels (pieces/moves)')
 parser.add_argument('--dir', type=str, default='', help='The data directory')
-parser.add_argument('--odir', type=str, default='', help='The output hdf5 data directory')
+parser.add_argument('--odir', type=str, default='', help='The output npz data directory')
 parser.add_argument('-v', dest='verbose', action='store_true')
 parser.add_argument('--minelo', type=int, default=2000, 
 	help='Minimum ELO rating to be added to training data')
