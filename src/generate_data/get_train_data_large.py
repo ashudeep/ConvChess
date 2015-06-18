@@ -16,6 +16,7 @@ from util import *
 import sys, os
 import timeit
 import argparse
+NUM_GAMES = 4000
 parser=argparse.ArgumentParser\
 	(description='Convert PGN data into numpy arrays of size 6*8*8 with labels (pieces/moves)')
 parser.add_argument('--dir', type=str, default='', help='The data directory')
@@ -37,6 +38,8 @@ parser.add_argument('--multi', dest='multiple_layers', action='store_true',
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true',
 	help='Append a layer with the piece being played marked as 1 for the move\
 	network data.')
+parser.add_argument('--skip', type=int, help='skip first these many games.\
+	Ideally a multiple of %d'%NUM_GAMES, default=0)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)
@@ -54,7 +57,7 @@ TRAIN_DATA_DIR = args.odir
 if not os.path.isdir(TRAIN_DATA_DIR):
 	os.mkdir(os.getcwd()+"/"+TRAIN_DATA_DIR)
 
-NUM_GAMES = 4000
+
 
 #assign the correct functions from util.py
 if args.multiple_layers:
@@ -71,6 +74,18 @@ for f in os.listdir(PGN_DATA_DIR):
 		print "%s file opened...."%f
 		for game in pgn.GameIterator(PGN_DATA_DIR+"/"+f):
 			if not game:	break
+			if game_index < args.skip+1:
+				game_index+=1
+				if game_index%4000==0:
+					print "Skipped %d games"%game_index
+				continue
+			elif game_index == args.skip+1:
+				start = timeit.default_timer()
+				X, y = [], []
+				p1_X, p2_X, p3_X = [], [], []
+				p4_X, p5_X, p6_X = [], [], []
+				p1_y, p2_y, p3_y = [], [], []
+				p4_y, p5_y, p6_y = [], [], []
 			#print PGN_DATA_DIR+"/"+f, game
 			board = chess.Bitboard()
 			moves = game.moves
