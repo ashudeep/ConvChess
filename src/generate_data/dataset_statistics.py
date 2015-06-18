@@ -12,7 +12,7 @@ piece_label_files = [f for f in npy_files if piece_y_re.match(f)]
 move_label_files = [[f for f in npy_files if move_y_re[i].match(f)] for i in xrange(6)]
 
 PIECE_TO_INDEX = {'P' : 0, 'R' : 1, 'N' : 2, 'B' : 3, 'Q' : 4, 'K' : 5}
-INDEX_TO_PIECE = {0 : 'P', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
+INDEX_TO_PIECE = {0 : 'Piece', 1 : 'Rook', 2 : 'Knight', 3 : 'Bishop', 4 : 'Queen', 5 : 'King'}
 ranges = ()
 num_games=0
 for fil in move_label_files[0]:

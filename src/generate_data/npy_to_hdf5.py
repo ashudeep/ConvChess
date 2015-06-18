@@ -14,7 +14,7 @@ parser=argparse.ArgumentParser\
 	(description='ConvNet for learning Chess moves',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--dir', type=str, default='', help='The data directory')
 parser.add_argument('--odir', type=str, default='', help='The output hdf5 data directory')
-parser.add_argument('--dtype', type=str, default='', help='The datatype for the h5py data')
+parser.add_argument('--dtype', type=str, default='float32', help='The datatype for the h5py data')
 parser.add_argument('-v', dest='verbose', action='store_true')
 parser.add_argument('--single', dest='single_file', action= 'store_true')
 parser.add_argument('--no-shuffle', dest='shuffle', action='store_false')
@@ -51,10 +51,8 @@ max_shape_move = (None, dim2, 8, 8)
 
 print(chunk_size, chunk_size_move)
 
-if args.dtype:
-	dtype = args.dtype
-else: 
-	dtype= 'float32'
+dtype = args.dtype
+
 
 INPUT_DIR = args.dir
 if args.odir:
@@ -71,6 +69,7 @@ if os.path.isdir(OUTPUT_DIR):
 	else:
 		import shutil
 		shutil.rmtree(OUTPUT_DIR)
+		os.mkdir(OUTPUT_DIR)
 else:
 	os.mkdir(OUTPUT_DIR)
 
