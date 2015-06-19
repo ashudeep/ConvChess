@@ -21,9 +21,9 @@ parser.add_argument('--resume-model', type=str, default='',
 	dest='resume_model', help='CaffeModel to resume training from')
 parser.add_argument('--niters', type=int, default=300000,
 	dest='niters', help='Number of iterations to train')
-parser.add_argument('--test-int', type=int, default=2000,
+parser.add_argument('--test-int', type=int, default=10000,
 	dest='test_interval', help='Interval to test the network after')
-parser.add_argument('--save-int', type=int, default=2000,
+parser.add_argument('--save-int', type=int, default=10000,
 	dest='save_interval', help='Interval to save the results')
 parser.add_argument('--solver', type=str, default='',
 	dest='solver', help='File that contains the solver configuration')
@@ -112,7 +112,7 @@ if not args.testing: # Training
 
 else: # Testing
 	print "Testing on %d inputs." % inputs.shape[0]
-	classifier = caffe.Classifier("move.protxt", "%s_train.caffemodel" % args.net, gpu=abs(1-args.cpu))
+	classifier = caffe.Classifier("move.prototxt", "%s_train.caffemodel" % args.net, gpu=abs(1-args.cpu))
 	prediction = classifier.predict(data)
 	if args.labels:
 		print "Accuracy is %f"% np.mean(prediction == labels)
