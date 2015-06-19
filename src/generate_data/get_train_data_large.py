@@ -38,12 +38,14 @@ parser.add_argument('--multi', dest='multiple_layers', action='store_true',
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true',
 	help='Append a layer with the piece being played marked as 1 for the move\
 	network data.')
+parser.add_argument('--resultlayer', dest='result_layer',action = 'store_true')
 parser.add_argument('--skip', type=int, help='skip first these many games.\
 	Ideally a multiple of %d'%NUM_GAMES, default=0)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)
 parser.set_defaults(piece_layer=False)
+parser.set_defaults(result_layer=False)
 args = parser.parse_args()
 
 if args.elo_layer:
@@ -149,6 +151,19 @@ for f in os.listdir(PGN_DATA_DIR):
 			if elo_layer:
 				white_elo_layer = float(white_elo - min_elo)/args.C
 				black_elo_layer = float(black_elo- min_elo)/args.C
+			if args.result_layer:
+				white_result = game.result.split('-')[0]
+				if  white_result == '1':
+					white_result_layer = np.ones((1,8,8))
+					black_elo_layer = np.zeros((1,8,8))
+				elif white_result == '0':
+					white_result_layer = np.zeros((1,8,8))
+					black_result_layer = np.ones((1,8,8))
+				elif white_result == '1/2':
+					white_result_layer = 0.5*np.ones((1,8,8))
+					black_result_layer = 0.5*np.ones((1,8,8))
+				else:
+					raise Exception("Unknown outcome")
 			for move_index, move in enumerate(moves):
 				if move[0].isalpha(): # check if move is SAN
 					from_to_chess_coords = board.parse_san(move)
@@ -164,6 +179,8 @@ for f in os.listdir(PGN_DATA_DIR):
 						skip = skip_white
 						if elo_layer:
 							last_layer = white_elo_layer*np.ones((1,8,8))
+						if args.result_layer:
+							result_layer = white_result_layer
 					else:
 						im = flip_image(bitboard_to_image(board))
 						im = flip_color(im)
@@ -172,6 +189,14 @@ for f in os.listdir(PGN_DATA_DIR):
 						skip = skip_black
 						if elo_layer:
 							last_layer = black_elo_layer*np.ones((1,8,8))
+						if args.result_layer:
+							result_layer = black_result_layer
+
+					board.push_san(move)
+
+					#don't write if the player<2000 ELO
+					if skip:
+						continue
 
 					index_piece = np.where(im[from_coords] == 1)
 					# index_piece denotes the index in PIECE_TO_INDEX
@@ -186,12 +211,9 @@ for f in os.listdir(PGN_DATA_DIR):
 					im = np.rollaxis(im, 2, 0) # to get into form (C, H, W)
 					if elo_layer:
 						im = np.append(im, last_layer, axis=0)
-
-					board.push_san(move)
-
-					#don't write if the player<2000 ELO
-					if skip:
-						continue
+					if args.result_layer:
+						im = np.append(im, result_layer, axis=0)
+					
 					# Filling the X and y array
 					X.append(im)
 					y.append(from_coords)
