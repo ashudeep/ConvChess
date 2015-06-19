@@ -154,14 +154,14 @@ for f in os.listdir(PGN_DATA_DIR):
 			if args.result_layer:
 				white_result = game.result.split('-')[0]
 				if  white_result == '1':
-					white_result_layer = np.ones((8,8))
-					black_elo_layer = np.zeros((8,8))
+					white_result_layer = np.ones((1,8,8))
+					black_elo_layer = np.zeros((1,8,8))
 				elif white_result == '0':
-					white_result_layer = np.zeros((8,8))
-					black_result_layer = np.ones((8,8))
+					white_result_layer = np.zeros((1,8,8))
+					black_result_layer = np.ones((1,8,8))
 				elif white_result == '1/2':
-					white_result_layer = 0.5*np.ones((8,8))
-					black_result_layer = 0.5*np.ones((8,8))
+					white_result_layer = 0.5*np.ones((1,8,8))
+					black_result_layer = 0.5*np.ones((1,8,8))
 				else:
 					raise Exception("Unknown outcome")
 			for move_index, move in enumerate(moves):
@@ -212,7 +212,7 @@ for f in os.listdir(PGN_DATA_DIR):
 					if elo_layer:
 						im = np.append(im, last_layer, axis=0)
 					if args.result_layer:
-						im = im.append(im, result_layer, axis=0)
+						im = np.append(im, result_layer, axis=0)
 					
 					# Filling the X and y array
 					X.append(im)
