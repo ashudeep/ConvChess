@@ -1,0 +1,8 @@
+370480 games                                                                                                   
+Piece has 8965155 moves                                                                                        
+Rook has 8268214 moves                                                                                         
+Knight has 5540643 moves                                                                                       
+Bishop has 6078569 moves                                                                                       
+Queen has 5446905 moves                                                                                        
+King has 7265330 moves                                                                                         
+Total 41564816 moves    
