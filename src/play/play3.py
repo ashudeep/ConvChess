@@ -597,8 +597,8 @@ def game():
     gn_current = chess.pgn.Game()
 
     maxn =  10 #** (1.0 + random.random() * 2.0) # max nodes for sunfish
-    maxd = 2#random.randint(2,5)
-    maxm = 30#random.randint(1,10)
+    maxd = 3#random.randint(2,5)
+    maxm = 5#random.randint(1,10)
     print 'maxn %f' % (maxn)
     print 'maxm %d' % (maxm)
     print 'maxd %d'% (maxd)
@@ -606,8 +606,8 @@ def game():
     f.write('%d %d %d ' % (maxn,maxm,maxd))
     f.close()
 
-    #player_a = Computer()
-    player_a = MySearch(maxd=maxd, maxm=maxm)
+    player_a = Computer()
+    #player_a = MySearch(maxd=maxd, maxm=maxm)
     if against=="human":
         player_b = Human()
     elif against=="sunfish":
