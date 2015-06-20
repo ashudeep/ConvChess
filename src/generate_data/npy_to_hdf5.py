@@ -116,7 +116,7 @@ if args.verbose:
 
 #sanity checks
 assert len(piece_data_files)==len(piece_label_files), "There aren't equal number of files for data and labels"
-if not args.regrssion:
+if not args.regression:
 	for i in xrange(6):
 		assert len(move_data_files[i])==len(move_label_files[i]), "There aren't equal number of files for data and labels (moves)"
 

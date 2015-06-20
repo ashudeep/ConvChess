@@ -24,7 +24,7 @@ parser.add_argument('--dir', type=str, default='',
 parser.add_argument('--odir', type=str, default='', 
 	help='The output npz data directory')
 parser.add_argument('-v', dest='verbose', action='store_true')
-parser.add_argument('--minelo', type=int, default=2000, 
+parser.add_argument('--minelo', type=int, default=1000, 
 	help='Minimum ELO rating to be added to training data')
 parser.add_argument('--elo', dest='elo_layer', action='store_true',
 	help='Whether to include ELO rating layer or not')

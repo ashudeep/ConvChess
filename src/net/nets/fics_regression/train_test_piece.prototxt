@@ -4,10 +4,27 @@ layers {
   type: HDF5_DATA
   hdf5_data_param {
     batch_size: 1000
-    source: "/data/ConvChess/data/CvC_data_multi_elolayer_piecelayer_h5/piece_train.txt"
+    source: "/data/ConvChess/data/CvC_regression_h5/piece_train.txt"
   }
   top: "data"
-  top: "label"
+  top: "score"
+  include{
+    phase:TRAIN
+  }
+}
+name: "PieceNet"
+layers {
+  name: "input"
+  type: HDF5_DATA
+  hdf5_data_param {
+    batch_size: 1000
+    source: "/data/ConvChess/data/CvC_regression_h5/piece_test.txt"
+  }
+  top: "data"
+  top: "score"
+  include{
+    phase:TEST
+  }
 }
 layers {
     name: "conv1"
@@ -112,9 +129,27 @@ layers {
   top: "fc1"
 }
 layers {
-  name: "loss"
-  type: SOFTMAX_LOSS
+  name: "fc2"
+  type: INNER_PRODUCT
+  #blobs_lr: 1.
+  #blobs_lr: 2.
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
   bottom: "fc1"
-  bottom: "label"
+  top: "fc2"
+}
+layers {
+  name: "loss"
+  type: EUCLIDEAN_LOSS
+  bottom: "fc2"
+  bottom: "score"
   top: "loss"
 }
