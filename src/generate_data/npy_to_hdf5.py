@@ -144,6 +144,7 @@ if args.single_file:
 		dtype = dtype,
 		chunks=chunk_size	, 
 		maxshape= max_shape)
+	label_name = 
 	f.create_dataset('label', data=piece_label_cur, 
 		dtype = dtype,
 		chunks=(100,), maxshape=(None,))
