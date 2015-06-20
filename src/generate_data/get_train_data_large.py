@@ -48,7 +48,7 @@ parser.add_argument('--regr', dest='regression', action='store_true',
 	help='Evaluation of each table according to discounted values\
 	 due to win(1), loss(-1), draw(1/2)')
 parser.add_argument('-g', dest='gamma', type=float, 
-	help='Discount factor for positions', default=0.95)
+	help='Discount factor for positions', default=0.9)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)

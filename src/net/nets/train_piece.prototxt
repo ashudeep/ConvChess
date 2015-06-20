@@ -4,10 +4,10 @@ layers {
   type: HDF5_DATA
   hdf5_data_param {
     batch_size: 1000
-    source: "/data/ConvChess/data/CvC_data_multi_elolayer_piecelayer_h5/piece_train.txt"
+    source: "/data/ConvChess/data/CvC_regression_h5/piece_train.txt"
   }
   top: "data"
-  top: "label"
+  top: "score"
 }
 layers {
     name: "conv1"
@@ -113,8 +113,8 @@ layers {
 }
 layers {
   name: "loss"
-  type: SOFTMAX_LOSS
+  type: EUCLIDEAN_LOSS
   bottom: "fc1"
-  bottom: "label"
+  bottom: "score"
   top: "loss"
 }
