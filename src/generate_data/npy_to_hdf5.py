@@ -12,20 +12,26 @@ import timeit
 import argparse
 parser=argparse.ArgumentParser\
 	(description='ConvNet for learning Chess moves',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--dir', type=str, default='', help='The data directory')
-parser.add_argument('--odir', type=str, default='', help='The output hdf5 data directory')
-parser.add_argument('--dtype', type=str, default='float32', help='The datatype for the h5py data')
+parser.add_argument('--dir', type=str, default='', 
+	help='The data directory')
+parser.add_argument('--odir', type=str, default='', 
+	help='The output hdf5 data directory')
+parser.add_argument('--dtype', type=str, default='float32', 
+	help='The datatype for the h5py data')
 parser.add_argument('-v', dest='verbose', action='store_true')
 parser.add_argument('--single', dest='single_file', action= 'store_true')
 parser.add_argument('--no-shuffle', dest='shuffle', action='store_false')
 parser.add_argument('--elo_layer', dest='elo_layer', action='store_true')
 parser.add_argument('--multi', dest='multi_layer', action='store_true')
-parser.add_argument('--piecelayer', dest='piece_layer', action='store_true')
+parser.add_argument('--piecelayer', dest='piece_layer', 
+	action='store_true')
 parser.add_argument('-f', dest='force', action='store_true')
-parser.add_argument('--resultlayer', dest='resultlayer', action='store_true')
+parser.add_argument('--resultlayer', dest='resultlayer', 
+	action='store_true')
 parser.add_argument('--regr', dest='regression', action='store_true', 
 	help='Store the data in the format of a table to win or lose.')
-parser.add_argument('-g', dest='gamma', type=float, help='discount factor for positions')
+parser.add_argument('-g', dest='gamma', type=float, 
+	help='discount factor for positions', default=0.95)
 parser.set_defaults(verbose=False)
 parser.set_defaults(single_file=False)
 parser.set_defaults(shuffle=True)

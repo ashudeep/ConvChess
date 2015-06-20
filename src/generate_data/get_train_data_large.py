@@ -19,8 +19,10 @@ import argparse
 NUM_GAMES = 4000
 parser=argparse.ArgumentParser\
 	(description='Convert PGN data into numpy arrays of size 6*8*8 with labels (pieces/moves)')
-parser.add_argument('--dir', type=str, default='', help='The data directory')
-parser.add_argument('--odir', type=str, default='', help='The output npz data directory')
+parser.add_argument('--dir', type=str, default='', 
+	help='The data directory')
+parser.add_argument('--odir', type=str, default='', 
+	help='The output npz data directory')
 parser.add_argument('-v', dest='verbose', action='store_true')
 parser.add_argument('--minelo', type=int, default=2000, 
 	help='Minimum ELO rating to be added to training data')
@@ -28,7 +30,7 @@ parser.add_argument('--elo', dest='elo_layer', action='store_true',
 	help='Whether to include ELO rating layer or not')
 parser.add_argument('--C', type=float, default=1255, 
 	help='Divide the ELO rating minus Min ELO rating by this value')
-parser.add_argument('--partsize', type=int, default=2500, 
+parser.add_argument('--partsize', type=int, default=NUM_GAMES, 
 	help='Number of games to be dumped into 1 npz file.')
 parser.add_argument('--history', type=int, default=1, 
 	help='Number of chess boards from history required.')
@@ -36,17 +38,26 @@ parser.add_argument('--multi', dest='multiple_layers', action='store_true',
 	help='Use multiple layers for a single piece to get (8,8,12) size \
 	image per board. Default: False.')
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true',
-	help='Append a layer with the piece being played marked as 1 for the move\
-	network data.')
-parser.add_argument('--resultlayer', dest='result_layer',action = 'store_true')
+	help='Append a layer with the piece being played marked as\
+	 1 for the move network data.')
+parser.add_argument('--resultlayer', dest='result_layer',
+	action = 'store_true')
 parser.add_argument('--skip', type=int, help='skip first these many games.\
 	Ideally a multiple of %d'%NUM_GAMES, default=0)
+parser.add_argument('--regr', dest='regression', action='store_true', 
+	help='Evaluation of each table according to discounted values\
+	 due to win(1), loss(-1), draw(1/2)')
+parser.add_argument('-g', dest='gamma', type=float, 
+	help='Discount factor for positions', default=0.95)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)
 parser.set_defaults(piece_layer=False)
 parser.set_defaults(result_layer=False)
+parser.set_defaults(regression=False)
 args = parser.parse_args()
+
+NUM_GAMES = args.partsize
 
 if args.elo_layer:
 	elo_layer = True
@@ -59,6 +70,10 @@ TRAIN_DATA_DIR = args.odir
 if not os.path.isdir(TRAIN_DATA_DIR):
 	os.mkdir(os.getcwd()+"/"+TRAIN_DATA_DIR)
 
+if args.regression and args.piece_layer:
+	raise Exception("Data representation for regression cannot contain piece-layer")
+if args.regression and args.result_layer:
+	raise Exception("Data representation for regression cannot contain result-layer")
 
 #assign the correct functions from util.py
 if args.multiple_layers:
@@ -109,32 +124,33 @@ for f in os.listdir(PGN_DATA_DIR):
 					output = TRAIN_DATA_DIR+'/y_%d_%d.npz' % (game_index-NUM_GAMES,game_index)
 					y = np.array(y).astype(np.float32)
 					np.savez_compressed(output, y)
+					if not args.regression:
+						for i in xrange(6):
+							output_array = "p%d_X" % (i + 1)
+							print "Saving %s array..." % (output_array)
+							output_array = eval(output_array)
+							output_array = np.array(output_array).astype(np.float32)
+							print output_array.shape
+							output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
+							np.savez_compressed(output, output_array)
 
-					for i in xrange(6):
-						output_array = "p%d_X" % (i + 1)
-						print "Saving %s array..." % (output_array)
-						output_array = eval(output_array)
-						output_array = np.array(output_array).astype(np.float32)
-						print output_array.shape
-						output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
-						np.savez_compressed(output, output_array)
-
-						output_array = "p%d_y" % (i + 1)
-						print "Saving %s array..." % output_array
-						output_array = eval(output_array)
-						output_array = np.array(output_array).astype(np.float32)
-						output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
-						np.savez_compressed(output, output_array)
+							output_array = "p%d_y" % (i + 1)
+							print "Saving %s array..." % output_array
+							output_array = eval(output_array)
+							output_array = np.array(output_array).astype(np.float32)
+							output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index-NUM_GAMES,game_index) 
+							np.savez_compressed(output, output_array)
 					end = timeit.default_timer()
 					print "Saved arrays into directory %s in %fs"%(TRAIN_DATA_DIR, end-start)
 
 				#clear the buffers
 				start = timeit.default_timer()
 				X, y = [], []
-				p1_X, p2_X, p3_X = [], [], []
-				p4_X, p5_X, p6_X = [], [], []
-				p1_y, p2_y, p3_y = [], [], []
-				p4_y, p5_y, p6_y = [], [], []
+				if not args.regression:
+					p1_X, p2_X, p3_X = [], [], []
+					p4_X, p5_X, p6_X = [], [], []
+					p1_y, p2_y, p3_y = [], [], []
+					p4_y, p5_y, p6_y = [], [], []
 			#increment the game counter
 			game_index+=1
 			black_elo = int(game.blackelo)
@@ -164,6 +180,7 @@ for f in os.listdir(PGN_DATA_DIR):
 					black_result_layer = 0.5*np.ones((1,8,8))
 				else:
 					raise Exception("Unknown outcome")
+			num_moves = len(moves)-2
 			for move_index, move in enumerate(moves):
 				if move[0].isalpha(): # check if move is SAN
 					from_to_chess_coords = board.parse_san(move)
@@ -216,22 +233,36 @@ for f in os.listdir(PGN_DATA_DIR):
 					
 					# Filling the X and y array
 					X.append(im)
-					y.append(from_coords)
+					if args.regression:
+						white_result = game.result.split('-')[0]
+						if white_result == '1/2':
+							white_result = 0.5
+						else:
+							white_result = float(white_result)
+						white_result = 2*white_result-1 #{1,1/2,0} to {1,0,-1}
+						table_score = white_result*args.gamma**((num_moves-move_index)/2)
+						if move_index % 2 == 0:
+							table_score = table_score
+						else:
+							table_score = -1*table_score
+						y.append(table_score)
+					else:
+						y.append(from_coords)
 
-					# Filling the p_X and p_y array
-					p_X = "p%d_X" % (index_piece + 1)
-					p_X = eval(p_X)
+						# Filling the p_X and p_y array
+						p_X = "p%d_X" % (index_piece + 1)
+						p_X = eval(p_X)
 
-					if args.piece_layer:
-						piece_layer = np.zeros((1,8,8))
-						piece_layer[0, from_coords/8, from_coords%8] = 1
-						im = np.append(im, piece_layer,axis=0)
-					
-					p_X.append(im)
+						if args.piece_layer:
+							piece_layer = np.zeros((1,8,8))
+							piece_layer[0, from_coords/8, from_coords%8] = 1
+							im = np.append(im, piece_layer,axis=0)
+						
+						p_X.append(im)
 
-					p_y = "p%d_y" % (index_piece + 1)
-					p_y = eval(p_y)
-					p_y.append(to_coords)
+						p_y = "p%d_y" % (index_piece + 1)
+						p_y = eval(p_y)
+						p_y.append(to_coords)
 
 					end = timeit.default_timer()
 
@@ -249,20 +280,21 @@ output = TRAIN_DATA_DIR+'/y_%d_%d.npz' % (game_index - game_index%NUM_GAMES,game
 y = np.array(y).astype(np.float32)
 np.savez_compressed(output, y)
 
-for i in xrange(6):
-	output_array = "p%d_X" % (i + 1)
-	print "Saving %s array..." % output_array
-	output_array = eval(output_array)
-	output_array = np.array(output_array).astype(np.float32)
-	output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES,game_index) 
-	np.savez_compressed(output, output_array)
+if not args.regression:
+	for i in xrange(6):
+		output_array = "p%d_X" % (i + 1)
+		print "Saving %s array..." % output_array
+		output_array = eval(output_array)
+		output_array = np.array(output_array).astype(np.float32)
+		output = TRAIN_DATA_DIR+'/p%d_X_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES,game_index) 
+		np.savez_compressed(output, output_array)
 
-	output_array = "p%d_y" % (i + 1)
-	print "Saving %s array..." % output_array
-	output_array = eval(output_array)
-	output_array = np.array(output_array).astype(np.float32)
-	output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES ,game_index) 
-	np.savez_compressed(output, output_array)
+		output_array = "p%d_y" % (i + 1)
+		print "Saving %s array..." % output_array
+		output_array = eval(output_array)
+		output_array = np.array(output_array).astype(np.float32)
+		output = TRAIN_DATA_DIR+'/p%d_y_%d_%d.npz' % (i + 1, game_index - game_index%NUM_GAMES ,game_index) 
+		np.savez_compressed(output, output_array)
 end = timeit.default_timer()
 print "Saved arrays into directory %s in %fs"%(TRAIN_DATA_DIR, end-start)
 print "Done with reading %d games"%(game_index+1)
