@@ -22,6 +22,10 @@ parser.add_argument('--elo_layer', dest='elo_layer', action='store_true')
 parser.add_argument('--multi', dest='multi_layer', action='store_true')
 parser.add_argument('--piecelayer', dest='piece_layer', action='store_true')
 parser.add_argument('-f', dest='force', action='store_true')
+parser.add_argument('--resultlayer', dest='resultlayer', action='store_true')
+parser.add_argument('--regr', dest='regression', action='store_true', 
+	help='Store the data in the format of a table to win or lose.')
+parser.add_argument('-g', dest='gamma', type=float, help='discount factor for positions')
 parser.set_defaults(verbose=False)
 parser.set_defaults(single_file=False)
 parser.set_defaults(shuffle=True)
@@ -29,13 +33,15 @@ parser.set_defaults(elo_layer=False)
 parser.set_defaults(multi_layer=False)
 parser.set_defaults(piece_layer=False)
 parser.set_defaults(force=False)
+parser.set_defaults(resultlayer=False)
 args = parser.parse_args()
 
 
+dim = 6
 if args.elo_layer:
-	dim = 7
-else:
-	dim = 6
+	dim = dim+1
+if args.resultlayer:
+	dim = dim+1
 if args.multi_layer:
 	dim+=6
 if args.piece_layer:
