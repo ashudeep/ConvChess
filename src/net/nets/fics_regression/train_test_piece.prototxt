@@ -3,7 +3,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 1000
+    batch_size: 64
     source: "/data/ConvChess/data/fics_data_regression_h5/piece_train.txt"
   }
   top: "data"
@@ -128,22 +128,35 @@ layers {
   top: "fc1"
 }
 layers {
+  name: "relu4"
+  type: RELU
+  bottom: "fc1"
+  top: "fc1"
+}
+layers {
+  name: "drop1"
+  type: DROPOUT
+  bottom: "fc1"
+  top: "fc1"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layers {
   name: "fc2"
   type: INNER_PRODUCT
-  #blobs_lr: 1.
-  #blobs_lr: 2.
+  bottom: "fc1"
+  top: "fc2"
   inner_product_param {
-    num_output: 1
+    num_output: 1        
     weight_filler {
-      type: "xavier"
+    type: "xavier"
     }
     bias_filler {
       type: "constant"
       value: 0.1
     }
   }
-  bottom: "fc1"
-  top: "fc2"
 }
 layers {
   name: "loss"
