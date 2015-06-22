@@ -16,6 +16,15 @@ def get_all_games(file_name):
 	pgn_file.close()
 	return pgn.loads(pgn_text)
 
+def pos_coords_to_2dcoord(fro):
+    i, j = fro/10, fro%10
+    i = i-2
+    j = j-1
+    return (i,j)
+
+
+
+
 def initialize_board():
 	board = np.zeros(BOARD_SIZE)
 	pattern = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']

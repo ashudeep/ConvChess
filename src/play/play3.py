@@ -7,6 +7,7 @@ https://github.com/erikbern/deep-pink
 '''
 import numpy as np
 import sunfish
+#import sunfish_mod
 import chess
 import pickle
 import random
@@ -16,12 +17,7 @@ import re
 import string
 import math
 from util import *
-#from run import *
 from chess import pgn
-#from layers import *
-#from fast_layers import *
-#from classifiers.convnet import *
-#from classifier_trainer import ClassifierTrainer
 from timeit import default_timer as timer
 import caffe
 import operator
@@ -76,6 +72,7 @@ def load_models(dir):
             net_path = dir+'/move.prototxt'
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
+load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
@@ -91,6 +88,13 @@ def scoresToBoard(scores):
 
 def boardToScores(board):
     return board.reshape((64))
+
+def pos_board_to_bitboard(board):
+    strip_whitespace = re.compile(r"\s+")
+    board = strip_whitespace.sub('',board)
+    board = " ".join(board)
+    board = re.sub("(.{16})", "\\1\n", board, 0, re.DOTALL)
+    return board
 
 def predictMove_MaxMethod(img):
     dummy = np.ones((1,), dtype=np.float32)
@@ -232,22 +236,10 @@ def evaluate_moves(img, moves):
         scores[i] = cumulative_probs[fro, to]
     return scores
 
-def pos_board_to_bitboard(board):
-    strip_whitespace = re.compile(r"\s+")
-    board = strip_whitespace.sub('',board)
-    board = " ".join(board)
-    board = re.sub("(.{16})", "\\1\n", board, 0, re.DOTALL)
-    return board
-
-def pos_coords_to_2dcoord(fro):
-    i, j = fro/10, fro%10
-    i = i-2
-    j = j-1
-    return (i,j)
 
 def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     #valType can be 'prob' or 'fc1'
-    #better to call get_move_prediction(img) if k=1
+    global trained_models
     dummy = np.ones((1,), dtype='float32')
     net = trained_models['Piece']
     net.set_input_arrays(np.array([img], dtype=np.float32),dummy)
@@ -301,6 +293,7 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     else:
         return str_moves
 
+
 #@functools.lru_cache(maxsize=None)
 def negamax(im, depth, alpha, beta, color, maxm):
     '''
@@ -319,15 +312,16 @@ def negamax(im, depth, alpha, beta, color, maxm):
     # else:
     #     im = flip_color_1(im)
     # im = np.rollaxis(im,2,0)
-    if color == - 1:
+    if color == -1:
         im = im[:,:,::-1]
     # if args.elo_layer:
     #     im = np.append(im, elo_layer, axis=0)
     top_moves = get_top_moves(im, maxm)
-    #print top_moves
+    #print top_moves, depth
     best_value = float('-inf')
     best_move = None
     for move, val in top_moves:
+        #print move, val
         if depth == 1:
             value = val
             if val == 0: #no move possible
@@ -338,18 +332,23 @@ def negamax(im, depth, alpha, beta, color, maxm):
             try:
                 fro = chess_coord_to_coord2d(move[0:2])
                 to = chess_coord_to_coord2d(move[2:4])
+                #pos_child=pos.move(move)
+                #print fro, to
                 if args.multilayer:
                     which_layer = np.where(im[0:12,fro[0],fro[1]]==1)[0]
-                    if not which_layer: continue
+                    # print fro
+                    # print which_layer
+                    if which_layer.size == 0: 
+                        continue
                     which_layer=which_layer[0]
                     try:
                         if_opponent_piece = np.where(im[0:12,to[0],to[1]]==1)[0][0]
                     except IndexError:
                         if_opponent_piece = None
                 else:
-                    which_layer = np.where(im[0:6, fro[0],fro[1]]==1)
-                    if not which_layer: continue
-                    which_layer=which_layer[0][0]
+                    which_layer = np.where(im[0:6, fro[0],fro[1]]==1)[0]
+                    if which_layer.size == 0: continue
+                    which_layer=which_layer[0]
                     try:
                         if_opponent_piece = np.where(im[0:6,to[0],to[1]]==1)[0][0]
                     except IndexError:
@@ -360,7 +359,13 @@ def negamax(im, depth, alpha, beta, color, maxm):
                 im2[which_layer,fro[0],fro[1]]=0
                 if if_opponent_piece:
                     im2[if_opponent_piece,to[0],to[1]]=0
+                temp = np.zeros((8,8))
+                for i in xrange(im2.shape[0]/2):
+                    temp[:] = im2[2*i,:,:]
+                    im2[2*i,:,:] = im2[2*i+1,:,:]
+                    im2[2*i+1,:,:] = temp[:]
                 pos_child = np.copy(im2)
+                #print pos_child
                 #pos_child = pos.move(crdn_move)
             except KeyError:
                 #means the move isn't possible
@@ -473,7 +478,7 @@ class MySearch(Player):
         im = np.rollaxis(im,2,0)
         if args.elo_layer:
             im = np.append(im,elo_layer,axis=0)
-        print im.shape
+        #print im.shape
         best_value, best_move = negamax(im, depth, alpha, beta, 1, maxm=self._maxm)
         best_move = (sunfish.parse(best_move[0:2]), sunfish.parse(best_move[2:4]))
         crdn = sunfish.render(best_move[0]) + sunfish.render(best_move[1])
@@ -593,12 +598,43 @@ class Sunfish(Player):
 
         return gn_new
 
+class Sunfish_Mod(Player):
+    def __init__(self, maxn=1e4, k=10):
+        self._pos = sunfish.Position(sunfish.initial, 0, (True,True), (True,True), 0, 0)
+        self._maxn = maxn
+        self._k = k
+
+    def move(self, gn_current):
+        import sunfish_mod
+
+        assert(gn_current.board().turn == 1)
+
+        # Apply last_move
+        crdn = str(gn_current.move)
+        move = (sunfish.parse(crdn[0:2]), sunfish.parse(crdn[2:4]))
+        self._pos = self._pos.move(move)
+
+        #t0 = time.time()
+        move, score = sunfish_mod.search(self._pos, maxn=self._maxn, k=self._k)
+        #print time.time() - t0, move, score
+        self._pos = self._pos.move(move)
+
+        crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
+        move = create_move(gn_current.board(), crdn)
+        
+        gn_new = chess.pgn.GameNode()
+        gn_new.parent = gn_current
+        gn_new.move = move
+
+        return gn_new
+
 def game():
     gn_current = chess.pgn.Game()
 
     maxn =  10 #** (1.0 + random.random() * 2.0) # max nodes for sunfish
     maxd = 3#random.randint(2,5)
     maxm = 5#random.randint(1,10)
+    k = 5
     print 'maxn %f' % (maxn)
     print 'maxm %d' % (maxm)
     print 'maxd %d'% (maxd)
@@ -606,12 +642,15 @@ def game():
     f.write('%d %d %d ' % (maxn,maxm,maxd))
     f.close()
 
-    player_a = Computer()
-    #player_a = MySearch(maxd=maxd, maxm=maxm)
+    #player_a = Computer()
+    #player_a = Sunfish(maxn=maxn)
+    player_a = MySearch(maxd=maxd, maxm=maxm)
     if against=="human":
         player_b = Human()
     elif against=="sunfish":
         player_b = Sunfish(maxn=maxn)
+    elif against=="sunfish_mod":
+        player_b = Sunfish_Mod(maxn=maxn, k=k)
     else:
         print "Only sunfish and human players are supported currently"
         exit(1)
@@ -656,6 +695,6 @@ def play():
     f.close()
 
 if __name__ == '__main__':
-    load_models(args.dir)
+    #load_models(args.dir)
     #for i in xrange(10000):
     play()

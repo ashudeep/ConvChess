@@ -27,8 +27,11 @@ parser.add_argument('--save-int', type=int, default=10000,
 	dest='save_interval', help='Interval to save the results')
 parser.add_argument('--solver', type=str, default='',
 	dest='solver', help='File that contains the solver configuration')
+parser.add_argument('-r','--regr', dest='regression', action='store_true',
+	help='Whether to train a regression or not. Default: False' )
 parser.set_defaults(cpu=False)
 parser.set_defaults(testing=False)
+parser.set_defaults(regression=False)
 args = parser.parse_args()
 
 # if args.labels == '':
@@ -66,7 +69,7 @@ if not os.path.isdir('models/%s'%model_name):
 	os.mkdir('models/%s'%model_name)
 accuracies = {'accuracy@1':[], 'accuracy@3':[], 'accuracy@5':[], 'accuracy@10':[]}
 
-if not args.testing: # Training
+if not args.testing and not args.regression: # Training
 	solver = caffe.SGDSolver(args.solver)
 	if args.resume_state !='' :	
 		solver.restore(args.resume_state)
@@ -109,7 +112,29 @@ if not args.testing: # Training
 				pkl.dump(test_losses, open('models/%s/test_loss.pkl'%model_name,'w'))
 				pkl.dump(accuracies, open('models/%s/accuracies.pkl'%model_name,'w'))
 
+elif args.regression and not args.testing:
+	solver = caffe.SGDSolver(args.solver)
+	if args.resume_state !='' :	
+		solver.restore(args.resume_state)
+	else:
+		f = open("models/%s/results.txt"%model_name,"a")
+		f.write("iter\ttrain_loss\ttest_loss\n")
+		f.close()
+	for it in xrange(niters):
+		solver.step(1)
+		train_losses.append(solver.net.blobs['loss'].data.flat[0])
 
+		solver.test_nets[0].forward(start='conv1')
+
+		if it % test_interval == 0 :
+			print 'Iteration %d testing...'%it
+			test_iter_ids.append(it)
+			test_losses.append(solver.test_nets[0].blobs['loss'].data.flat[0])
+		if it%save_interval == 0:
+			print "Saving the loss and accuracy values"
+			f = open("models/%s/results.txt"%model_name,"a+")
+			f.write("%d\t%1.4e\t%1.4e\n"%(it,train_losses[-1],test_losses[-1]))
+			f.close()
 else: # Testing
 	print "Testing on %d inputs." % inputs.shape[0]
 	classifier = caffe.Classifier("move.prototxt", "%s_train.caffemodel" % args.net, gpu=abs(1-args.cpu))

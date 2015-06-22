@@ -225,8 +225,8 @@ def negamax(pos, depth, alpha, beta, color, func, maxm):
     pos_children = []
     im = convert_bitboard_to_image(pos_board_to_bitboard(pos.board))
     im = np.rollaxis(im, 2, 0)
-    if color == -1:
-        im = flip_color(flip_image(im))
+    # if color == -1:
+    #     im = flip_color(flip_image(im))
     im = np.append(im, elo_layer, axis=0)
     for move in pos.genMoves():
         pos_child = pos.move(move)

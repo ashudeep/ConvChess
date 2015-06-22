@@ -3,7 +3,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 64
+    batch_size: 2048
     source: "/data/ConvChess/data/fics_data_regression_h5/piece_train.txt"
   }
   top: "data"
@@ -16,7 +16,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 1000
+    batch_size: 128 
     source: "/data/ConvChess/data/fics_data_regression_h5/piece_test.txt"
   }
   top: "data"
@@ -33,7 +33,7 @@ layers {
     bottom: "data"
     top: "conv1"
     convolution_param {
-        num_output: 96
+        num_output: 64
         kernel_size: 3
         pad: 1
         stride: 1    
@@ -48,8 +48,8 @@ layers {
    }
 }
 layers {
-    name: "relu1"
-    type: RELU
+    name: "tanh1"
+    type: TANH
     bottom: "conv1"
     top: "conv1"
 }
@@ -61,7 +61,7 @@ layers {
     bottom: "conv1"
     top: "conv2"
     convolution_param {
-        num_output: 256
+        num_output: 128
         kernel_size: 3
         pad: 1
         stride: 1
@@ -77,8 +77,8 @@ layers {
     }
 }
 layers {
-    name: "relu2"
-    type: RELU
+    name: "tanh2"
+    type: TANH
     bottom: "conv2"
     top: "conv2"
 }
@@ -104,8 +104,8 @@ layers {
     }}
 }
 layers {
-    name: "relu3"
-    type: RELU
+    name: "tanh3"
+    type: TANH
     bottom: "conv3"
     top: "conv3"
 }
@@ -121,15 +121,14 @@ layers {
     }
     bias_filler {
       type: "constant"
-      value: 0.1
     }
   }
   bottom: "conv3"
   top: "fc1"
 }
 layers {
-  name: "relu4"
-  type: RELU
+  name: "tanh4"
+  type: TANH
   bottom: "fc1"
   top: "fc1"
 }
@@ -154,9 +153,14 @@ layers {
     }
     bias_filler {
       type: "constant"
-      value: 0.1
     }
   }
+}
+layers{
+  name: "tanh5"
+  type: TANH
+  bottom: "fc2"
+  top: "fc2"
 }
 layers {
   name: "loss"
