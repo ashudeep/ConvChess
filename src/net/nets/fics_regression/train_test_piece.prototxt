@@ -3,7 +3,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 2048
+    batch_size: 1000
     source: "/data/ConvChess/data/fics_data_regression_h5/piece_train.txt"
   }
   top: "data"
@@ -16,7 +16,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 128 
+    batch_size: 1000 
     source: "/data/ConvChess/data/fics_data_regression_h5/piece_test.txt"
   }
   top: "data"
@@ -33,7 +33,7 @@ layers {
     bottom: "data"
     top: "conv1"
     convolution_param {
-        num_output: 64
+        num_output: 96
         kernel_size: 3
         pad: 1
         stride: 1    
@@ -48,8 +48,8 @@ layers {
    }
 }
 layers {
-    name: "tanh1"
-    type: TANH
+    name: "relu1"
+    type: RELU
     bottom: "conv1"
     top: "conv1"
 }
@@ -61,7 +61,7 @@ layers {
     bottom: "conv1"
     top: "conv2"
     convolution_param {
-        num_output: 128
+        num_output: 256
         kernel_size: 3
         pad: 1
         stride: 1
@@ -77,8 +77,8 @@ layers {
     }
 }
 layers {
-    name: "tanh2"
-    type: TANH
+    name: "relu2"
+    type: RELU
     bottom: "conv2"
     top: "conv2"
 }
@@ -104,8 +104,8 @@ layers {
     }}
 }
 layers {
-    name: "tanh3"
-    type: TANH
+    name: "relu3"
+    type: RELU
     bottom: "conv3"
     top: "conv3"
 }
@@ -121,45 +121,28 @@ layers {
     }
     bias_filler {
       type: "constant"
+      value: 0.1
     }
   }
   bottom: "conv3"
   top: "fc1"
 }
 layers {
-  name: "tanh4"
-  type: TANH
-  bottom: "fc1"
-  top: "fc1"
-}
-layers {
-  name: "drop1"
-  type: DROPOUT
-  bottom: "fc1"
-  top: "fc1"
-  dropout_param {
-    dropout_ratio: 0.5
-  }
-}
-layers {
   name: "fc2"
   type: INNER_PRODUCT
-  bottom: "fc1"
-  top: "fc2"
+  #blobs_lr: 1.
+  #blobs_lr: 2.
   inner_product_param {
-    num_output: 1        
+    num_output: 1
     weight_filler {
-    type: "xavier"
+      type: "xavier"
     }
     bias_filler {
       type: "constant"
+      value: 0.1
     }
   }
-}
-layers{
-  name: "tanh5"
-  type: TANH
-  bottom: "fc2"
+  bottom: "fc1"
   top: "fc2"
 }
 layers {
