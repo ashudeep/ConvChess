@@ -243,7 +243,7 @@ def evaluate_moves(img, moves):
 def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     #valType can be 'prob' or 'fc1'
     global TOP_MOVES_CACHE
-    if img.tostring() in TOP_MOVES_CACHE and CACHING:
+    if hash(img.tostring()) in TOP_MOVES_CACHE and CACHING:
         return TOP_MOVES_CACHE[hash(img.tostring())]
     global trained_models
     dummy = np.ones((1,), dtype='float32')
@@ -283,21 +283,54 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
                     move_prob = clip_moves(move_prob, img2[0:6], (i1,i2))
                 #print move_prob
                 cumulative_probs[piece_pos] = move_prob*probs[piece_pos]
+        pos = topk(cumulative_probs.flatten(), k)
     elif valType=='fc1':
-        # vals = resnet.blobs['fc1'].data
+        fcvals = net.blobs['fc1'].data
+        if args.multilayer and clipping:
+            fcvals = clip_pieces_single_2(fcvals, img[0:12], normalize=False)
+        else clipping:
+            fcvals = clip_pieces_single(fcvals, img[0:6], normalize=False)
+        fcvals = fcvals.flatten()
+        cumulative_vals = np.zeros((64,64))
+        for i, piece_pos in enumerate(topk(fcvals,k)):
+            i1 , i2 = scoreToCoordinateIndex(piece_pos)
+            if args.multilayer:
+                pieceType = INDEX_TO_PIECE[np.argmax(img[0:12, i1, i2])/2]
+            else:
+                pieceType = INDEX_TO_PIECE[np.argmax(img[0:6, i1, i2])]
+            if args.piecelayer:
+                piece_layer = np.zeros((1,8,8))
+                piece_layer[0,i1,i2] = 1
+                img2 = np.append(img, piece_layer, axis=0)
+            else:
+                img2 = img
+            model = trained_models[pieceType]
+            model.set_input_arrays(np.array([img2], dtype=np.float32),dummy)
+            res2 = model.forward()
+            move_vals = model.blobs['fc1']
+            #print move_prob
+            if args.multilayer and clipping:
+                move_vals = clip_moves_2(move_vals, img2[0:12], (i1,i2), normalize=False)
+            elif clipping:
+                move_vals = clip_moves(move_vals, img2[0:6], (i1,i2), normalize=False)
+            #print move_prob
+            cumulative_vals[piece_pos] = move_vals+cumulative_vals[piece_pos]
+        pos = topk(cumulative_vals.flatten(), k)
+        cumulative_probs = cumulative_vals
         # if args.multilayer:
-        raise NotImplementedError("typeVal=fc1 is still unimplemented.")
+        #raise NotImplementedError("typeVal=fc1 is still unimplemented.")
     #print cumulative_probs
-    pos = topk(cumulative_probs.flatten(), k)
+    
     moves = [(p/64,p%64) for p in pos]
     str_moves = [coord2d_to_chess_coord(scoreToCoordinateIndex(move[0]))+\
         coord2d_to_chess_coord(scoreToCoordinateIndex(move[1])) for move in moves]
+    moves_vals = zip(str_moves, cumulative_probs.flatten()[pos])
+    moves_vals.sort(key=operator.itemgetter(1), reverse=True)
     if vals:
-        moves_vals = zip(str_moves, cumulative_probs.flatten()[pos])
-        moves_vals.sort(key=operator.itemgetter(1), reverse=True)
         if CACHING: TOP_MOVES_CACHE[hash(img.tostring())] = moves_vals
         return moves_vals   
     else:
+        str_moves = [move for (move, val) in moves_vals]
         if CACHING: TOP_MOVES_CACHE[hash(img.tostring())] = str_moves
         return str_moves
 
@@ -696,13 +729,17 @@ def game():
             print s
             print times[side]
             if gn_current.board().is_checkmate():
+                print "Checkmate"
                 return side
             elif gn_current.board().is_stalemate():
+                print "Stalemate"
                 return '-'
             elif gn_current.board().can_claim_fifty_moves():
+                print "Stalemate by 50-move-rule"
                 return '-' 
             elif s.find('K') == -1 or s.find('k') == -1:
                 # Both AI's suck at checkmating, so also detect capturing the king
+                print "King killed"
                 return side
 
 def play():

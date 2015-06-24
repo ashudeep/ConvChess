@@ -76,6 +76,7 @@ def convert_bitboard_to_image_2(board):
 	return im
 
 def convert_image_to_bitboard(im):
+	#6 channel image to bitboard
 	board = chess.Bitboard()
 	board.clear()
 	for i in xrange(BOARD_SIZE[0]):
@@ -92,6 +93,7 @@ def convert_image_to_bitboard(im):
 	return board
 
 def convert_image_to_bitboard_2(im):
+	#12 channel image to bitboard
 	board = chess.Bitboard()
 	board.clear()
 	for i in xrange(BOARD_SIZE[0]):
@@ -101,7 +103,7 @@ def convert_image_to_bitboard_2(im):
 			new_coords = flatten_coord2d((7 - i, j))
 			if index_piece.shape != (0,):
 				piece = INDEX_TO_PIECE[index_piece[0]/2]
-				if im[(i,j,index_piece[0]/2)] == -1:
+				if index_piece[0]%2 == 1:
 					piece = piece.lower()
 				board.set_piece_at(new_coords, chess.Piece.from_symbol(piece))
 	return board
@@ -154,7 +156,7 @@ def clip_pieces_single(prob_dist, im):
 	prob_dist = np.reshape(indices, (1, 64)) * prob_dist
 	return prob_dist/np.sum(prob_dist)
 
-def clip_pieces_single_2(prob_dist, im):
+def clip_pieces_single_2(prob_dist, im, normalize=True):
 	'''
 	Clips the probability distribution of the piece selector to
 	return non-zero probabilities only for the places with player's pieces
@@ -172,7 +174,8 @@ def clip_pieces_single_2(prob_dist, im):
 	indices = np.max(im, axis=0)
 	#indices[indices < 0] = 0
 	prob_dist = np.reshape(indices, (1, 64)) * prob_dist
-	return prob_dist/np.sum(prob_dist)
+	if not normalize:	return prob_dist
+	else:				return prob_dist/np.sum(prob_dist)
 
 def clip_pieces(prob_dists, ims):
 	# 100, 64 : dimension of prob_dists
@@ -183,7 +186,7 @@ def clip_pieces(prob_dists, ims):
 	prob_dists = np.reshape(indices, (-1, 64)) * prob_dists
 	return prob_dists
 
-def clip_moves(prob_dist, im, coord):
+def clip_moves(prob_dist, im, coord, normalize=True):
 
 	# 1, 64
 	# 6, 8 ,8
@@ -221,14 +224,14 @@ def clip_moves(prob_dist, im, coord):
 				prob_dist2[:, c] = 0.0
 				# print "After: ", prob_dist[:, c]
 	# print np.zeros_like(prob_dist) == prob_dist
-	if np.sum(prob_dist2)>0:
+	if np.sum(prob_dist2)>0 and normalize:
 		return prob_dist2/np.sum(prob_dist2)
 	else:
 		return prob_dist2
 
 
 
-def clip_moves_2(prob_dist, im, coord):
+def clip_moves_2(prob_dist, im, coord, normalize=True):
 
 	# 1, 64
 	# 6, 8 ,8
@@ -266,7 +269,7 @@ def clip_moves_2(prob_dist, im, coord):
 				prob_dist2[:, c] = 0.0
 				# print "After: ", prob_dist[:, c]
 	# print np.zeros_like(prob_dist) == prob_dist
-	if np.sum(prob_dist2)>0:
+	if np.sum(prob_dist2)>0 and normalize:
 		return prob_dist2/np.sum(prob_dist2)
 	else:
 		return prob_dist2
