@@ -7,7 +7,7 @@ https://github.com/erikbern/deep-pink
 '''
 import numpy as np
 import sunfish
-#import sunfish_mod
+import sunfish_mod
 import chess
 import pickle
 import random
@@ -60,7 +60,8 @@ against = args.against
 trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
 CHECKMATE_SCORE = 1e6  
-
+TOP_MOVES_CACHE = {}
+CACHING = True
 def load_models(dir):
     model_names = ['piece', 'pawn', 'rook', 'knight', 'bishop', 'queen', 'king']
     names = ['Piece', 'P', 'R', 'N', 'B', 'Q', 'K']
@@ -72,7 +73,9 @@ def load_models(dir):
             net_path = dir+'/move.prototxt'
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
-load_models(args.dir)
+
+if trained_models == {}:
+    load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
@@ -239,6 +242,9 @@ def evaluate_moves(img, moves):
 
 def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     #valType can be 'prob' or 'fc1'
+    global TOP_MOVES_CACHE
+    if img.tostring() in TOP_MOVES_CACHE and CACHING:
+        return TOP_MOVES_CACHE[hash(img.tostring())]
     global trained_models
     dummy = np.ones((1,), dtype='float32')
     net = trained_models['Piece']
@@ -289,8 +295,10 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     if vals:
         moves_vals = zip(str_moves, cumulative_probs.flatten()[pos])
         moves_vals.sort(key=operator.itemgetter(1), reverse=True)
+        if CACHING: TOP_MOVES_CACHE[hash(img.tostring())] = moves_vals
         return moves_vals   
     else:
+        if CACHING: TOP_MOVES_CACHE[hash(img.tostring())] = str_moves
         return str_moves
 
 
@@ -512,7 +520,9 @@ class Computer(Player):
         move = chess.Move.from_uci(move_str)
 
         if move not in bb.legal_moves:
-            print "NOT A LEGAL MOVE"
+            print "%s is NOT A LEGAL MOVE"%move
+            #print list(bb.legal_moves)
+            #exit(1)
 
         gn_new = chess.pgn.GameNode()
         gn_new.parent = gn_current
@@ -603,57 +613,68 @@ class Sunfish_Mod(Player):
         self._pos = sunfish.Position(sunfish.initial, 0, (True,True), (True,True), 0, 0)
         self._maxn = maxn
         self._k = k
+        #self.first_move = True
 
     def move(self, gn_current):
-        import sunfish_mod
+        if gn_current.board().turn == 1 :
 
-        assert(gn_current.board().turn == 1)
+            # Apply last_move
+            crdn = str(gn_current.move)
+            move = (sunfish.parse(crdn[0:2]), sunfish.parse(crdn[2:4]))
+            self._pos = self._pos.move(move)
+            self.first_move = False
+            #t0 = time.time()
+            move, score = sunfish_mod.search(self._pos, maxn=self._maxn, k=self._k)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
 
-        # Apply last_move
-        crdn = str(gn_current.move)
-        move = (sunfish.parse(crdn[0:2]), sunfish.parse(crdn[2:4]))
-        self._pos = self._pos.move(move)
+            crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
+        else:
+            if gn_current.move is not None:
+                # Apply last_move
+                crdn = str(gn_current.move)
+                move = (119 - sunfish.parse(crdn[0:2]), 119 - sunfish.parse(crdn[2:4]))
+                self._pos = self._pos.move(move)
+            #t0 = time.time()
+            move, score = sunfish_mod.search(self._pos, maxn=self._maxn, k=self._k)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
 
-        #t0 = time.time()
-        move, score = sunfish_mod.search(self._pos, maxn=self._maxn, k=self._k)
-        #print time.time() - t0, move, score
-        self._pos = self._pos.move(move)
-
-        crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
-        move = create_move(gn_current.board(), crdn)
-        
+            crdn = sunfish.render(move[0]) + sunfish.render(move[1])
+        move = create_move(gn_current.board(), crdn)  
         gn_new = chess.pgn.GameNode()
         gn_new.parent = gn_current
         gn_new.move = move
 
         return gn_new
-
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn =  10 #** (1.0 + random.random() * 2.0) # max nodes for sunfish
-    maxd = 3#random.randint(2,5)
-    maxm = 5#random.randint(1,10)
-    k = 5
-    print 'maxn %f' % (maxn)
-    print 'maxm %d' % (maxm)
-    print 'maxd %d'% (maxd)
+    maxn =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
+    # maxd = 3#random.randint(2,5)
+    # maxm = 5#random.randint(1,10)
+    k = random.randint(3, 30)
+    print 'maxn %f, k %d' % (maxn, k)
+    # print 'maxm %d' % (maxm)
+    # print 'maxd %d'% (maxd)
     f = open(args.odir+'/stats.txt', 'a')
-    f.write('%d %d %d ' % (maxn,maxm,maxd))
+    f.write('%d %d ' % (maxn,k))
     f.close()
-
+    #load_models(args.dir)
     #player_a = Computer()
     #player_a = Sunfish(maxn=maxn)
-    player_a = MySearch(maxd=maxd, maxm=maxm)
-    if against=="human":
-        player_b = Human()
-    elif against=="sunfish":
-        player_b = Sunfish(maxn=maxn)
-    elif against=="sunfish_mod":
-        player_b = Sunfish_Mod(maxn=maxn, k=k)
-    else:
-        print "Only sunfish and human players are supported currently"
-        exit(1)
+    player_a = Sunfish_Mod(maxn, k)
+    player_b = Sunfish(maxn=maxn)
+    #player_a = MySearch(maxd=maxd, maxm=maxm)
+    # if against=="human":
+    #     player_b = Human()
+    # elif against=="sunfish":
+    #     player_b = Sunfish(maxn=maxn)
+    # elif against=="sunfish_mod":
+    #     player_b = Sunfish_Mod(maxn=maxn, k=k)
+    # else:
+    #     print "Only sunfish and human players are supported currently"
+    #     exit(1)
 
     times = {'A' : 0.0, 'B' : 0.0}
 
@@ -673,7 +694,7 @@ def game():
             print '=========== Player %s: %s' % (side, gn_current.move)
             s = str(gn_current.board())
             print s
-	    print times[side]
+            print times[side]
             if gn_current.board().is_checkmate():
                 return side
             elif gn_current.board().is_stalemate():
@@ -696,5 +717,5 @@ def play():
 
 if __name__ == '__main__':
     #load_models(args.dir)
-    #for i in xrange(10000):
-    play()
+    for i in xrange(10000):
+        play()
