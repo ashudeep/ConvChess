@@ -270,15 +270,17 @@ def bound(pos, gamma, depth, k=10):
     # adjusted gamma value.
     best, bmove = -3*MATE_VALUE, None
     #if args.multilayer:
-    im = convert_bitboard_to_image_2(Play.pos_board_to_bitboard(pos.board))
-#    else:
- #       im = convert_bitboard_to_image(pos.board())
+    bb= Play.pos_board_to_bitboard(pos.board)
+    #bb.legal_moves
+    im = convert_bitboard_to_image_2(bb)
     im = np.rollaxis(im,2,0)
     im = np.append(im,Play.elo_layer, axis=0)
     clipping = False
     feasible_moves = list(pos.genMoves())
-    generated_moves = Play.get_top_moves(im,k=min(k, len(feasible_moves)), vals=False, clipping=clipping)
-
+    generated_moves = Play.get_top_moves(im,k=k,vals=False, clipping=clipping)
+    #print  ("Feasible moves", feasible_moves)
+    #print ("BB Legal Moves", bb.legal_moves)
+    #print ("Generated Moves", generated_moves)
     moves = [(parse(move[0:2]), parse(move[2:4])) for move in generated_moves]
     moves = filter(lambda x: x in feasible_moves, moves)
     #print(moves)

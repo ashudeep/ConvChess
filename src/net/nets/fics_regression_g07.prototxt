@@ -7,7 +7,7 @@ layers {
     source: "/data/ConvChess/data/fics_regression_g07_h5/piece_train.txt"
   }
   top: "data"
-  top: "score"
+  top: "label"
   include{
     phase:TRAIN
   }
@@ -20,7 +20,7 @@ layers {
     source: "/data/ConvChess/data/fics_regression_g07_h5/piece_test.txt"
   }
   top: "data"
-  top: "score"
+  top: "label"
   include{
     phase:TEST
   }
@@ -127,10 +127,41 @@ layers {
   bottom: "conv3"
   top: "fc1"
 }
+layers{
+  name: "tanh"
+  type: TANH
+  bottom: "fc1"
+  top: "fc1"
+}
+
+layers {
+  name: "fc2"
+  type: INNER_PRODUCT
+  #blobs_lr: 1.
+  #blobs_lr: 2.
+  inner_product_param {
+    num_output: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.1
+    }
+  }
+  bottom: "fc1"
+  top: "fc2"
+}
+layers{
+  name: "tanh"
+  type: TANH
+  bottom: "fc2"
+  top: "fc2"
+}
 layers {
   name: "loss"
   type: EUCLIDEAN_LOSS
-  bottom: "fc1"
-  bottom: "score"
+  bottom: "fc2"
+  bottom: "label"
   top: "loss"
 }
