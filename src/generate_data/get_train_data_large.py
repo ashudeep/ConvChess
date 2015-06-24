@@ -49,6 +49,9 @@ parser.add_argument('--regr', dest='regression', action='store_true',
 	 due to win(1), loss(-1), draw(1/2)')
 parser.add_argument('-g', dest='gamma', type=float, 
 	help='Discount factor for positions', default=0.9)
+parser.add_argument('--skipdraws', dest='skip_draws', action='store_true',
+	help = 'Skip draws for regression')
+parser.set_defaults(skip_draws=False)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
 parser.set_defaults(multiple_layers=False)
@@ -102,6 +105,10 @@ for f in os.listdir(PGN_DATA_DIR):
 				p4_X, p5_X, p6_X = [], [], []
 				p1_y, p2_y, p3_y = [], [], []
 				p4_y, p5_y, p6_y = [], [], []
+			white_result = game.result.split('-')[0]
+			if args.regression and args.skip_draws and white_result == '1/2':
+				game_index+=1
+				continue
 			#print PGN_DATA_DIR+"/"+f, game
 			board = chess.Bitboard()
 			moves = game.moves
