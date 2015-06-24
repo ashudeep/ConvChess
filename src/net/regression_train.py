@@ -12,17 +12,21 @@ import lasagne
 
 # ############################### prepare data ###############################
 import h5py as h5
-dataset = h5.File("/data/ConvChess/data/fics_regression/X_0_8000.h5")
+dataset = h5.File("/data/ConvChess/data/CvC_regression_h5/X_0_8000.h5")
 # theano has a constant float type that it uses (float32 for GPU)
 # also rescaling to [0, 1] instead of [0, 255]
-X = dataset['data'].astype(theano.config.floatX) / 255.0
-y = dataset['label'].astype(theano.config.floatX)
-X_train, X_valid, y_train, y_valid = sklearn.cross_validation.train_test_split(
-    X, y, random_state=42, train_size=50000, test_size=10000)
+X = dataset['data']
+y = dataset['label']
+X_train = X[0:700000]
+X_valid = X[700001:800000]
+y_train=y[0:700000]
+y_valid = y[700001:800000]
+#sklearn.cross_validation.train_test_split(
+#    X, y, random_state=42, train_size=500000, test_size=100000)
 # need to reshape arrays into images, and add in a channel dimension
 # there is only 1 channel in this case because the images are gray scale
-X_train = X_train.reshape(-1, 1, 28, 28)
-X_valid = X_valid.reshape(-1, 1, 28, 28)
+#X_train = X_train.reshape(-1, 1, 28, 28)
+#X_valid = X_valid.reshape(-1, 1, 28, 28)
 
 # ############################## prepare model ##############################
 # architecture:
@@ -42,7 +46,7 @@ X_valid = X_valid.reshape(-1, 1, 28, 28)
 # - the batch size can be provided as `None` to make the network
 #   work for multiple different batch sizes
 l_in = lasagne.layers.InputLayer(
-    shape=(None, 1, 28, 28),
+    shape=(None, 6, 8,  8),
 )
 
 # - GlorotUniform is an intelligent initialization for conv layers
@@ -57,21 +61,21 @@ l_conv1 = lasagne.layers.Conv2DLayer(
     W=lasagne.init.GlorotUniform(),
 )
 l_conv2 = lasagne.layers.Conv2DLayer(
-    l_pool1,
+    l_conv1,
     num_filters=256,
     filter_size=(3, 3),
     nonlinearity=lasagne.nonlinearities.rectify,
     W=lasagne.init.GlorotUniform(),
 )
 l_conv3 = lasagne.layers.Conv2DLayer(
-    l_pool1,
+    l_conv2,
     num_filters=384,
     filter_size=(3, 3),
     nonlinearity=lasagne.nonlinearities.rectify,
     W=lasagne.init.GlorotUniform(),
 )
 l_hidden1 = lasagne.layers.DenseLayer(
-    l_pool2,
+    l_conv3,
     num_units=256,
     nonlinearity=lasagne.nonlinearities.rectify,
     W=lasagne.init.GlorotUniform(),
@@ -84,14 +88,14 @@ l_hidden1_dropout = lasagne.layers.DropoutLayer(l_hidden1, p=0.5)
 l_out = lasagne.layers.DenseLayer(
     l_hidden1_dropout,
     num_units=1,
-    nonlinearity=lasagne.nonlinearities.softmax,
+    nonlinearity=lasagne.nonlinearities.tanh,
     W=lasagne.init.GlorotUniform(),
 )
 
 # ############################### network loss ###############################
 
 # int32 vector
-target_vector = T.ivector('y')
+target_vector = T.vector('y')
 
 
 def loss_fn(output):
@@ -155,8 +159,8 @@ for epoch_num in range(num_epochs):
     for batch_num in range(num_batches_train):
         batch_slice = slice(batch_size * batch_num,
                             batch_size * (batch_num + 1))
-        X_batch = X_train[batch_slice]
-        y_batch = y_train[batch_slice]
+        X_batch = T.shared(X_train[batch_slice])
+        y_batch = T.shared(y_train[batch_slice])
 
         loss, = train_fn(X_batch, y_batch)
         train_losses.append(loss)
