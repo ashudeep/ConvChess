@@ -4,7 +4,7 @@ layers {
   type: HDF5_DATA
   hdf5_data_param {
     batch_size: 1000
-    source: "/data/ConvChess/data/fics_regression_g07_h5/piece_train.txt"
+    source: "/data/ConvChess/data/fics_regression_g06_nodraws_h5/piece_train.txt"
   }
   top: "data"
   top: "label"
@@ -17,7 +17,7 @@ layers {
   type: HDF5_DATA
   hdf5_data_param {
     batch_size: 1000
-    source: "/data/ConvChess/data/fics_regression_g07_h5/piece_test.txt"
+    source: "/data/ConvChess/data/fics_regression_g06_nnodraws_h5/piece_test.txt"
   }
   top: "data"
   top: "label"

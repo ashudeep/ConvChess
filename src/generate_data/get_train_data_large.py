@@ -247,7 +247,7 @@ for f in os.listdir(PGN_DATA_DIR):
 						else:
 							white_result = float(white_result)
 						white_result = 2*white_result-1 #{1,1/2,0} to {1,0,-1}
-						table_score = white_result*args.gamma**((num_moves-move_index)/2)
+						table_score = white_result*args.gamma**(num_moves-move_index)
 						if move_index % 2 == 0:
 							table_score = table_score
 						else:

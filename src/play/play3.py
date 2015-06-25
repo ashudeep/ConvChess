@@ -242,6 +242,7 @@ def evaluate_moves(img, moves):
 
 def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     #valType can be 'prob' or 'fc1'
+    global CACHING
     global TOP_MOVES_CACHE
     if hash(img.tostring()) in TOP_MOVES_CACHE and CACHING:
         return TOP_MOVES_CACHE[hash(img.tostring())]
@@ -288,7 +289,7 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
         fcvals = net.blobs['fc1'].data
         if args.multilayer and clipping:
             fcvals = clip_pieces_single_2(fcvals, img[0:12], normalize=False)
-        else clipping:
+        elif clipping:
             fcvals = clip_pieces_single(fcvals, img[0:6], normalize=False)
         fcvals = fcvals.flatten()
         cumulative_vals = np.zeros((64,64))
@@ -307,13 +308,14 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
             model = trained_models[pieceType]
             model.set_input_arrays(np.array([img2], dtype=np.float32),dummy)
             res2 = model.forward()
-            move_vals = model.blobs['fc1']
+            move_vals = model.blobs['fc1'].data
             #print move_prob
             if args.multilayer and clipping:
                 move_vals = clip_moves_2(move_vals, img2[0:12], (i1,i2), normalize=False)
             elif clipping:
                 move_vals = clip_moves(move_vals, img2[0:6], (i1,i2), normalize=False)
             #print move_prob
+            #print move_vals, cumulative_vals
             cumulative_vals[piece_pos] = move_vals+cumulative_vals[piece_pos]
         pos = topk(cumulative_vals.flatten(), k)
         cumulative_probs = cumulative_vals
@@ -332,6 +334,7 @@ def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
     else:
         str_moves = [move for (move, val) in moves_vals]
         if CACHING: TOP_MOVES_CACHE[hash(img.tostring())] = str_moves
+        #print str_moves
         return str_moves
 
 
@@ -683,10 +686,10 @@ class Sunfish_Mod(Player):
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
+    maxn =  828#10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
     # maxd = 3#random.randint(2,5)
     # maxm = 5#random.randint(1,10)
-    k = random.randint(3, 30)
+    k = 21#random.randint(3, 30)
     print 'maxn %f, k %d' % (maxn, k)
     # print 'maxm %d' % (maxm)
     # print 'maxd %d'% (maxd)
@@ -754,5 +757,5 @@ def play():
 
 if __name__ == '__main__':
     #load_models(args.dir)
-    for i in xrange(10000):
+    for i in xrange(1):
         play()
