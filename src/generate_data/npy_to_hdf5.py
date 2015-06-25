@@ -146,11 +146,11 @@ if args.single_file:
 	f.create_dataset('data', data=piece_data_cur, 
 		dtype = dtype,
 		chunks=chunk_size	, 
-		maxshape= max_shape)
+		maxshape= max_shape, compression='gzip')
 	#label_name = 
 	f.create_dataset('label', data=piece_label_cur, 
 		dtype = dtype,
-		chunks=(100,), maxshape=(None,))
+		chunks=(100,), maxshape=(None,), compression='gzip')
 	curr_len = piece_label_cur.shape[0]
 
 	for i in xrange(len(piece_data_files)-1):
