@@ -137,6 +137,9 @@ if args.single_file:
 	listf.close()
 	piece_data_cur = np.load(INPUT_DIR+"/"+ piece_data_files[0])
 	piece_label_cur = np.load(INPUT_DIR+"/"+piece_label_files[0])
+	if ".npz" in piece_data_files[i]:
+		piece_data_cur= piece_data_cur['arr_0']
+		piece_label_cur = piece_label_cur['arr_0']
 	if args.shuffle:
 		piece_data_cur, piece_label_cur = shuffle_in_unison_inplace(
 			piece_data_cur, piece_label_cur) 
@@ -153,6 +156,9 @@ if args.single_file:
 	for i in xrange(len(piece_data_files)-1):
 		piece_data_cur = np.load(INPUT_DIR+"/"+piece_data_files[i+1])
 		piece_label_cur = np.load(INPUT_DIR+"/"+piece_label_files[i+1])
+		if ".npz" in piece_data_files[i]:
+			piece_data_cur= piece_data_cur['arr_0']
+			piece_label_cur = piece_label_cur['arr_0']
 		dataset= f['data']
 		dataset.resize((curr_len+piece_label_cur.shape[0], piece_data_cur.shape[1],piece_data_cur.shape[2],piece_data_cur.shape[3]))
 		label_dataset = f['label']
@@ -202,6 +208,9 @@ if args.single_file:
 				move_label_cur = np.load(INPUT_DIR+"/"+move_label_files[i][j+1])
 				
 				#resize the datasets
+				if ".npz" in piece_data_files[i]:
+					data_cur= data_cur['arr_0']
+					label_cur = label_cur['arr_0']
 				dataset= f[i]['data']
 				dataset.resize((curr_len+move_label_cur.shape[0], move_data_cur.shape[1],move_data_cur.shape[2],move_data_cur.shape[3]))
 				label_dataset = f[i]['label']
