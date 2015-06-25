@@ -137,7 +137,7 @@ if args.single_file:
 	listf.close()
 	piece_data_cur = np.load(INPUT_DIR+"/"+ piece_data_files[0])
 	piece_label_cur = np.load(INPUT_DIR+"/"+piece_label_files[0])
-	if ".npz" in piece_data_files[i]:
+	if ".npz" in piece_data_files[0]:
 		piece_data_cur= piece_data_cur['arr_0']
 		piece_label_cur = piece_label_cur['arr_0']
 	if args.shuffle:
@@ -191,10 +191,12 @@ if args.single_file:
 			move_label_cur = np.load(INPUT_DIR+"/"+move_label_files[i][0])
 			f[i].create_dataset('data', data=move_data_cur ,
 				dtype = dtype ,
-				chunks=chunk_size_move, maxshape= max_shape_move)
+				chunks=chunk_size_move, maxshape= max_shape_move,
+				compression='gzip')
 			f[i].create_dataset('label', data=move_label_cur, 
 				dtype = dtype,
-				chunks= (100,), maxshape=(None,))
+				chunks= (100,), maxshape=(None,),
+				compression='gzip')
 			curr_lens.append(move_label_cur.shape[0])
 
 
