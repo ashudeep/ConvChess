@@ -56,7 +56,14 @@ X_test = HDF5Matrix(h5_file, 'data', test_start, test_end)
 y_train = HDF5Matrix(h5_file, 'label', train_start, train_end)
 y_test = HDF5Matrix(h5_file, 'label', test_start, test_end)
 
+class LossHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
 history = LossHistory()
+
 import os
 if not os.path.isdir("./models/regression"):
 	os.mkdir("./models/regression")
