@@ -64,6 +64,7 @@ if not os.path.isdir("./models/regression"):
 checkpointer = ModelCheckpoint(filepath="./models/regression/best_%s.hdf5"%args.name, verbose=1, save_best_only=True)
 model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history, checkpointer])
 
-pkl.dump(model, open("model_%s.pkl"%args.name, "w"))
+pkl.dump(model, open("./models/regression/model_%s.pkl"%args.name, "w"))
+pkl.dump(history.losses, open("./models/regression/losses_%s.pkl"%args.name,"w"))
 
 score = model.evaluate(X_test, y_test, batch_size=2048)
