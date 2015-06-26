@@ -3,7 +3,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 1000
+    batch_size: 10
     source: "/data/ConvChess/data/fics_regression_g07_h5/piece_train.txt"
   }
   top: "data"
@@ -16,7 +16,7 @@ layers {
   name: "input"
   type: HDF5_DATA
   hdf5_data_param {
-    batch_size: 1000
+    batch_size: 10
     source: "/data/ConvChess/data/fics_regression_g07_h5/piece_test.txt"
   }
   top: "data"
@@ -145,16 +145,23 @@ layers {
 #   bottom: "fc1"
 #   top: "fc2"
 # }
-# layers {
-#   name: "tanh"
-#   type: TANH
-#   bottom: "fc2"
-#   top: "fc2"
-# }
+layers{
+  name: "flatfc1"
+  type: FLATTEN
+  bottom: "fc1"
+  top: "flatfc1"
+}
+layers{
+  name: "fflatfc1"
+  type: FLATTEN
+  bottom: "flatfc1"
+  top: "fflatfc1"
+}
+
 layers {
   name: "loss"
   type: EUCLIDEAN_LOSS
-  bottom: "fc1"
+  bottom: "fflatfc1"
   bottom: "label"
   top: "loss"
 }

@@ -7,7 +7,6 @@ https://github.com/erikbern/deep-pink
 '''
 import numpy as np
 import sunfish
-import sunfish_mod
 import chess
 import pickle
 import random
@@ -23,6 +22,9 @@ import caffe
 import operator
 caffe.set_mode_gpu()
 import argparse
+#import sunfish_mod
+import sunfish_mod2
+#import sunfish_mod3
 #import functools
 
 parser=argparse.ArgumentParser\
@@ -61,7 +63,7 @@ trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
 CHECKMATE_SCORE = 1e6  
 TOP_MOVES_CACHE = {}
-CACHING = True
+CACHING = False
 def load_models(dir):
     model_names = ['piece', 'pawn', 'rook', 'knight', 'bishop', 'queen', 'king']
     names = ['Piece', 'P', 'R', 'N', 'B', 'Q', 'K']
@@ -74,8 +76,8 @@ def load_models(dir):
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
 
-if trained_models == {}:
-    load_models(args.dir)
+# if trained_models == {}:
+#     load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
@@ -683,24 +685,106 @@ class Sunfish_Mod(Player):
         gn_new.move = move
 
         return gn_new
+
+class Sunfish_Mod2(Player):
+    def __init__(self, maxn=1e4):
+        self._pos = sunfish.Position(sunfish.initial, 0, (True,True), (True,True), 0, 0)
+        self._maxn = maxn
+        #self.first_move = True
+
+    def move(self, gn_current):
+        if gn_current.board().turn == 1 :
+
+            # Apply last_move
+            crdn = str(gn_current.move)
+            move = (sunfish.parse(crdn[0:2]), sunfish.parse(crdn[2:4]))
+            self._pos = self._pos.move(move)
+            #self.first_move = False
+            #t0 = time.time()
+            move, score = sunfish_mod2.search(self._pos, maxn=self._maxn)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
+
+            crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
+        else:
+            if gn_current.move is not None:
+                # Apply last_move
+                crdn = str(gn_current.move)
+                move = (119 - sunfish.parse(crdn[0:2]), 119 - sunfish.parse(crdn[2:4]))
+                self._pos = self._pos.move(move)
+            #t0 = time.time()
+            move, score = sunfish_mod2.search(self._pos, maxn=self._maxn)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
+
+            crdn = sunfish.render(move[0]) + sunfish.render(move[1])
+        move = create_move(gn_current.board(), crdn)  
+        gn_new = chess.pgn.GameNode()
+        gn_new.parent = gn_current
+        gn_new.move = move
+
+        return gn_new
+
+class Sunfish_Mod3(Player):
+    def __init__(self, maxn=1e4):
+        self._pos = sunfish_mod3.Position(sunfish.initial, 0, (True,True), (True,True), 0, 0)
+        self._maxn = maxn
+        #self.first_move = True
+
+    def move(self, gn_current):
+        if gn_current.board().turn == 1 :
+
+            # Apply last_move
+            crdn = str(gn_current.move)
+            move = (sunfish.parse(crdn[0:2]), sunfish.parse(crdn[2:4]))
+            self._pos = self._pos.move(move)
+            #self.first_move = False
+            #t0 = time.time()
+            move, score = sunfish_mod3.search(self._pos, maxn=self._maxn)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
+
+            crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
+        else:
+            if gn_current.move is not None:
+                # Apply last_move
+                crdn = str(gn_current.move)
+                move = (119 - sunfish.parse(crdn[0:2]), 119 - sunfish.parse(crdn[2:4]))
+                self._pos = self._pos.move(move)
+            #t0 = time.time()
+            move, score = sunfish_mod3.search(self._pos, maxn=self._maxn)
+            #print time.time() - t0, move, score
+            self._pos = self._pos.move(move)
+
+            crdn = sunfish.render(move[0]) + sunfish.render(move[1])
+        move = create_move(gn_current.board(), crdn)  
+        gn_new = chess.pgn.GameNode()
+        gn_new.parent = gn_current
+        gn_new.move = move
+
+        return gn_new
+
+
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn =  828#10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
+    maxn1 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
+    maxn2 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish_mod2
+    
     # maxd = 3#random.randint(2,5)
     # maxm = 5#random.randint(1,10)
-    k = 21#random.randint(3, 30)
-    print 'maxn %f, k %d' % (maxn, k)
+    #k = random.randint(3, 30)
+    print 'maxn: %f %f' % (maxn1, maxn2)
     # print 'maxm %d' % (maxm)
     # print 'maxd %d'% (maxd)
     f = open(args.odir+'/stats.txt', 'a')
-    f.write('%d %d ' % (maxn,k))
+    f.write('%d %d' %(maxn1, maxn2))
     f.close()
     #load_models(args.dir)
     #player_a = Computer()
     #player_a = Sunfish(maxn=maxn)
-    player_a = Sunfish_Mod(maxn, k)
-    player_b = Sunfish(maxn=maxn)
+    player_a = Sunfish_Mod2(maxn=maxn1)
+    player_b = Sunfish(maxn=maxn2)
     #player_a = MySearch(maxd=maxd, maxm=maxm)
     # if against=="human":
     #     player_b = Human()
@@ -757,5 +841,5 @@ def play():
 
 if __name__ == '__main__':
     #load_models(args.dir)
-    for i in xrange(1):
+    for i in xrange(10000):
         play()
