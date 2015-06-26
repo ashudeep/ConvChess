@@ -36,8 +36,8 @@ model.add(Activation('relu'))
 model.add(Dense(256, 1))
 #model.add(Activation('softmax'))
 
-sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
-model.compile(loss='mean_squared_error', optimizer=sgd)
+#sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(loss='mean_squared_error', optimizer='rmsprop')
 
 h5_file = args.f 
 r = args.r
