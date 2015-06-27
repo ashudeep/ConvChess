@@ -15,6 +15,8 @@ parser.add_argument('-f', type=str, help='HDF5 File Name')
 parser.add_argument('--name', type=str, help='Model Name')
 parser.add_argument('-n', type=int, help='number of epocs', default=1)
 parser.add_argument('--cont', type=str, help='model weights to start training from.', default='')
+parser.add_argument('-b', type=int, default=1024, help='Batch size while training')
+parser.add_argument('--bt', type=int, default=2048, help='Batch size while testing')
 args = parser.parse_args()
 
 
@@ -22,6 +24,7 @@ def decide_split(h5_file, ratio=0.8):
 	import h5py as h5
 	f = h5.File(h5_file, 'r')
 	size = f['label'].shape[0]
+	f.close()
 	training_size = int(0.8*size)
 	return (0,training_size, training_size+1, size)
 
@@ -69,7 +72,7 @@ if not os.path.isdir("./models/regression"):
 	os.mkdir("./models/regression")
 
 checkpointer = ModelCheckpoint(filepath="./models/regression/best_%s.hdf5"%args.name, verbose=1, save_best_only=True)
-model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history, checkpointer], validation_split=0.1)
+model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history, checkpointer])
 
 pkl.dump(model, open("./models/regression/model_%s.pkl"%args.name, "w"))
 pkl.dump(history.losses, open("./models/regression/losses_%s.pkl"%args.name,"w"))
