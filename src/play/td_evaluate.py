@@ -13,4 +13,5 @@ class CNN_evaluator:
 
 	def evaluate_batch(self, batch):
 		#batch is much faster than one individually
-		return self.model.predict(batch, verbose=0)
+		#print batch
+		return self.model.predict(np.asarray(batch), verbose=0, batch_size=1024)[:,0]
