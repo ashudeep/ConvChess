@@ -63,10 +63,11 @@ def negamax(pos, depth, alpha, beta, color, func):
         bb = pos_board_to_bitboard(pos_child.board)
         im = convert_bitboard_to_image(bb)
         im = np.rollaxis(im, 2, 0)
-        im = im[:,::-1, :]
-        im = flip_color_1(im)
+        
         if color==1:
-        	im = im[:,:,::-1]
+        	im = flip_color_1(im[:,::-1,::-1])
+        else:
+        	im = flip_color_1(im[:,::-1,:])
         #print bb, "\n", sunfish.render(move[0]) + sunfish.render(move[1]), str(color),"\n",str(im)
         X.append(im)
 
@@ -229,8 +230,8 @@ class Sunfish(Player):
 def game(func):
     gn_current = chess.pgn.Game()
 
-    maxd = random.randint(2, 3) # max depth for deep pink
-    maxn = 10 ** (2.0 + random.random() * 1.0) # max nodes for sunfish
+    maxd = random.randint(3, 3) # max depth for deep pink
+    maxn = 10 ** (1.0 + random.random() * 1.0) # max nodes for sunfish
 
     print 'maxd %f maxn %f' % (maxd, maxn)
 
@@ -266,7 +267,7 @@ def game(func):
             
 def play():
     #func = get_model_from_pickle('model.pickle')
-    evaluator = CNN_evaluator('models/fics_g07_3.pkl')
+    evaluator = CNN_evaluator('regression_models/fics_g07_3.pkl')
     func = evaluator.evaluate_batch
     side, times = game(func)
     f = open('stats.txt', 'a')

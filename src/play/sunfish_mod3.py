@@ -267,7 +267,7 @@ tp = OrderedDict()
 
 nodes = 0
 
-def bound(pos, gamma, depth):
+def bound(pos, gamma, depth, color=1):
     """ returns s(pos) <= r < gamma    if s(pos) < gamma
         returns s(pos) >= r >= gamma   if s(pos) >= gamma """
     global nodes; nodes += 1
@@ -305,11 +305,11 @@ def bound(pos, gamma, depth):
         im = np.rollaxis(im, 2, 0)
         future_boards.append(im)
         #pos_children.append(pos_child)
-    future_boards = np.asarray(future_boards)
+    #future_boards = np.asarray(future_boards)
     values = evaluator.evaluate_batch(future_boards)
     for move, value in sorted(zip(moves, values), key=operator.itemgetter(1), reverse=True):
         # We check captures with the value function, as it also contains ep and kp
-        if depth <= 0 and value < 150:
+        if depth <= 0:
             break
         score = -bound(pos.move(move), 1-gamma, depth-1)
         if score > best:
