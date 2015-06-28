@@ -30,27 +30,24 @@ def decide_split(h5_file, ratio=0.8):
 
 if not args.cont:
 	model = Sequential()
-	model.add(Convolution2D(64, 6, 3, 3, border_mode='full')) 
+	model.add(Convolution2D(32, 6, 3, 3, border_mode='full')) 
 	model.add(Activation('tanh'))
 	
-	model.add(Convolution2D(128, 64, 3, 3))
+	model.add(Convolution2D(64, 32, 3, 3))
+	model.add(Activation('tanh'))
+
+	model.add(Convolution2D(128, 64, 3, 3)) 
 	model.add(Activation('tanh'))
 
 	model.add(Convolution2D(256, 128, 3, 3)) 
 	model.add(Activation('tanh'))
 
-	model.add(Convolution2D(384, 256, 3, 3)) 
-	model.add(Activation('tanh'))
-
-	model.add(Convolution2D(4096, 384, 3, 3)) 
-	model.add(Activation('tanh'))
-
 	model.add(Flatten())
-	model.add(Dense(4096*2*2, 4096))
+	model.add(Dense(256*4*4, 1024))
 	model.add(Activation('tanh'))
 	model.add(Dropout(0.5))
 
-	model.add(Dense(4096, 1))
+	model.add(Dense(1024, 1))
 	model.add(Activation('tanh'))
 
 	model.compile(loss='mean_squared_error', optimizer='rmsprop')
