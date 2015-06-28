@@ -42,8 +42,11 @@ if not args.cont:
 	model.add(Convolution2D(384, 256, 3, 3)) 
 	model.add(Activation('tanh'))
 
+	model.add(Convolution2D(4096, 384, 3, 3)) 
+	model.add(Activation('tanh'))
+
 	model.add(Flatten())
-	model.add(Dense(384*4*4, 4096))
+	model.add(Dense(4096*2*2, 4096))
 	model.add(Activation('tanh'))
 	model.add(Dropout(0.5))
 
