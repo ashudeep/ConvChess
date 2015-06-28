@@ -5,19 +5,18 @@ from __future__ import print_function
 import sys
 from itertools import count
 from collections import Counter, OrderedDict, namedtuple
-#import play3 as Play
+import play3 as Play
 from util import *
 from td_evaluate import *
 import numpy as np
-import re
-MODEL_FILE = "regression_models/fics_g07_3.pkl"
+MODEL_FILE = "models/fics_g07_3.pkl"
 evaluator = CNN_evaluator(MODEL_FILE)
 
 # The table size is the maximum number of elements in the transposition table.
 TABLE_SIZE = 1e6
 
 # This constant controls how much time we spend on looking for optimal moves.
-NODES_SEARCHED = 1e4
+NODES_SEARCHED = 1e3
 
 # Mate value must be greater than 8*queen + 2*(rook+knight+bishop)
 # King value is set to twice this value such that if the opponent is
@@ -55,16 +54,10 @@ directions = {
     'Q': (N, E, S, W, N+E, S+E, S+W, N+W),
     'K': (N, E, S, W, N+E, S+E, S+W, N+W)
 }
+
 ###############################################################################
 # Chess logic
 ###############################################################################
-
-def pos_board_to_bitboard(board):
-    strip_whitespace = re.compile(r"\s+")
-    board = strip_whitespace.sub('',board)
-    board = " ".join(board)
-    board = re.sub("(.{16})", "\\1\n", board, 0, re.DOTALL)
-    return board
 
 class Position(namedtuple('Position', 'board score wc bc ep kp')):
     """ A state of a chess game
@@ -108,14 +101,14 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
             self.board[::-1].swapcase(), -self.score,
             self.bc, self.wc, 119-self.ep, 119-self.kp)
 
-    def move(self, move):
+    def move(self, move, flip):
         i, j = move
         p, q = self.board[i], self.board[j]
         put = lambda board, i, p: board[:i] + p + board[i+1:]
         # Copy variables and reset ep and kp
         board = self.board
         wc, bc, ep, kp = self.wc, self.bc, 0, 0
-        score = self.value(move)
+        score = self.value(move, color, flip)
         # Actual move
         board = put(board, j, board[i])
         board = put(board, i, '.')
@@ -175,18 +168,19 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
         # We rotate the returned position, so it's ready for the next player
         return board
 
-    def value(self, move):
+    def value(self, move, flip):
         pos_child_board = self.move_dummy(move)
         #print(pos_child_board)
         #print("here")
-        bb = pos_board_to_bitboard(pos_child_board)
+        bb = Play.pos_board_to_bitboard(pos_child_board)
         im = convert_bitboard_to_image(bb)
+        # if color == -1:
+        #     im = im[::-1,:,:]
         im = np.rollaxis(im, 2, 0)
-        im1 = im[:,:,::-1] 
-        #we'll also check for its horizontally-flipped counterpart
-        eval_score = max(evaluator.evaluate_batch([im, im1]))
-        # print(bb)
-        # print(eval_score)
+        if flip==1:
+            im = im[:,:,::-1]
+        eval_score = evaluator.evaluate(im)[0][0]
+        #print score
         return eval_score
 
 Entry = namedtuple('Entry', 'depth score gamma move')
@@ -199,7 +193,7 @@ tp = OrderedDict()
 
 nodes = 0
 
-def bound(pos, gamma, depth):
+def bound(pos, gamma, depth, color=1):
     """ returns s(pos) <= r < gamma    if s(pos) < gamma
         returns s(pos) >= r >= gamma   if s(pos) >= gamma """
     global nodes; nodes += 1
@@ -218,7 +212,7 @@ def bound(pos, gamma, depth):
         return pos.score
 
     # Null move. Is also used for stalemate checking
-    nullscore = -bound(pos.rotate(), 1-gamma, depth-3) if depth > 0 else pos.score
+    nullscore = -bound(pos.rotate(), 1-gamma, depth-3, color=-color) if depth > 0 else pos.score
     #nullscore = -MATE_VALUE*3 if depth > 0 else pos.score
     if nullscore >= gamma:
         return nullscore
@@ -241,7 +235,7 @@ def bound(pos, gamma, depth):
         # We check captures with the value function, as it also contains ep and kp
         if depth <= 0:
             break
-        score = -bound(pos.move(move), 1-gamma, depth-1)
+        score = -bound(pos.move(move, color), 1-gamma, depth-1, color=-color)
         if score > best:
             best = score
             bmove = move
@@ -281,7 +275,8 @@ def search(pos, maxn=NODES_SEARCHED):
         lower, upper = -3*MATE_VALUE, 3*MATE_VALUE
         while lower < upper - 3:
             gamma = (lower+upper+1)//2
-            score = bound(pos, gamma, depth)
+            print (pos.board)
+            score = bound(pos, gamma, depth, color=1)
             if score >= gamma:
                 lower = score
             if score < gamma:

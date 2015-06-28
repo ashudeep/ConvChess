@@ -1,6 +1,5 @@
 '''
-Plays one (or more) games against a human or the sunfish AI.
-
+For experiments only
 Adapted from Erik Bern's Chess AI
 https://github.com/erikbern/deep-pink
 
@@ -23,7 +22,7 @@ import operator
 caffe.set_mode_gpu()
 import argparse
 #import sunfish_mod
-import sunfish_mod2
+#import sunfish_mod2
 #import sunfish_mod3
 #import functools
 
@@ -52,7 +51,7 @@ def add_arguments(parser):
     parser.set_defaults(multilayer=True)
 
 add_arguments(parser)
-args = parser.parse_args()
+args, unknown = parser.parse_known_args()
 
 if args.elo_layer:
     elo_layer = ((3255-2000.0)/1255.0) * np.ones((1,8,8),dtype=np.float32)
@@ -76,8 +75,8 @@ def load_models(dir):
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
 
-# if trained_models == {}:
-#     load_models(args.dir)
+if trained_models == {}:
+    load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
