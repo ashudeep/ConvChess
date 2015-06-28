@@ -43,7 +43,7 @@ if not args.cont:
 	model.add(Activation('tanh'))
 	model.add(Dropout(0.5))
 
-	model.add(Dense(256, 1))
+	model.add(Dense(1024, 1))
 	model.add(Activation('tanh'))
 
 	model.compile(loss='mean_squared_error', optimizer='rmsprop')
