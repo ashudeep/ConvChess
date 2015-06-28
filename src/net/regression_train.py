@@ -30,18 +30,18 @@ def decide_split(h5_file, ratio=0.8):
 
 if not args.cont:
 	model = Sequential()
-	model.add(Convolution2D(32, 6, 3, 3), ) 
+	model.add(Convolution2D(96, 6, 3, 3, border_mode='full')) 
 	model.add(Activation('tanh'))
-	model.add(Convolution2D(64, 32, 3, 3))
+	model.add(Convolution2D(256, 96, 3, 3))
 	model.add(Activation('tanh'))
 
-	model.add(Convolution2D(256, 64, 3, 3)) 
+	model.add(Convolution2D(384, 256, 3, 3)) 
 	model.add(Activation('tanh'))
 
 	model.add(Flatten())
-	model.add(Dense(1024, 256))
+	model.add(Dense(384*6*6, 1024))
 	model.add(Activation('tanh'))
-	#model.add(Dropout(0.5))
+	model.add(Dropout(0.5))
 
 	model.add(Dense(256, 1))
 	model.add(Activation('tanh'))
@@ -71,8 +71,7 @@ import os
 if not os.path.isdir("./models/regression"):
 	os.mkdir("./models/regression")
 
-checkpointer = ModelCheckpoint(filepath="./models/regression/best_%s.hdf5"%args.name, verbose=1, save_best_only=True)
-model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history, checkpointer])
+model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history])
 
 pkl.dump(model, open("./models/regression/model_%s.pkl"%args.name, "w"))
 pkl.dump(history.losses, open("./models/regression/losses_%s.pkl"%args.name,"w"))
