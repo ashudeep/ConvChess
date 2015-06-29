@@ -51,6 +51,8 @@ parser.add_argument('-g', dest='gamma', type=float,
 	help='Discount factor for positions', default=0.9)
 parser.add_argument('--skipdraws', dest='skip_draws', action='store_true',
 	help = 'Skip draws for regression')
+parser.add_argument('--pushbefore', dest='push_before', action='store_true',
+	help = 'Push the move before evaluating')
 parser.set_defaults(skip_draws=False)
 parser.set_defaults(verbose=False)
 parser.set_defaults(elo_layer=False)
@@ -58,6 +60,7 @@ parser.set_defaults(multiple_layers=False)
 parser.set_defaults(piece_layer=False)
 parser.set_defaults(result_layer=False)
 parser.set_defaults(regression=False)
+parser.set_defaults(push_before=False)
 args = parser.parse_args()
 
 NUM_GAMES = args.partsize
@@ -197,7 +200,8 @@ for f in os.listdir(PGN_DATA_DIR):
 					to_chess_coords = from_to_chess_coords[2:4]
 					from_coords = chess_coord_to_coord2d(from_chess_coords)
 					to_coords = chess_coord_to_coord2d(to_chess_coords)
-								
+					if args.push_before:
+						board.push_san(move)
 					if move_index % 2 == 0:
 						im = bitboard_to_image(board)
 						skip = skip_white
@@ -215,8 +219,8 @@ for f in os.listdir(PGN_DATA_DIR):
 							last_layer = black_elo_layer*np.ones((1,8,8))
 						if args.result_layer:
 							result_layer = black_result_layer
-
-					board.push_san(move)
+					if not args.push_before:
+						board.push_san(move)
 
 					#don't write if the player<2000 ELO
 					if skip:
@@ -247,7 +251,7 @@ for f in os.listdir(PGN_DATA_DIR):
 						else:
 							white_result = float(white_result)
 						white_result = 2*white_result-1 #{1,1/2,0} to {1,0,-1}
-						table_score = white_result*args.gamma**(num_moves-move_index)
+						table_score = white_result*args.gamma**((num_moves-move_index)/2)
 						if move_index % 2 == 0:
 							table_score = table_score
 						else:
