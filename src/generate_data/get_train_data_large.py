@@ -226,12 +226,13 @@ for f in os.listdir(PGN_DATA_DIR):
 					if skip:
 						continue
 
-					index_piece = np.where(im[from_coords] == 1)
-					# index_piece denotes the index in PIECE_TO_INDEX
-					if args.multiple_layers:
-						index_piece = index_piece[0][0]/2 # ranges from 0 to 5
-					else:
-						index_piece=index_piece[0][0]
+					if not args.regression:
+						index_piece = np.where(im[from_coords] == 1)
+						# index_piece denotes the index in PIECE_TO_INDEX
+						if args.multiple_layers:
+							index_piece = index_piece[0][0]/2 # ranges from 0 to 5
+						else:
+							index_piece=index_piece[0][0]
 
 					from_coords = flatten_coord2d(from_coords)
 					to_coords = flatten_coord2d(to_coords)
