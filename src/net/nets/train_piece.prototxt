@@ -4,6 +4,7 @@ layers {
   type: HDF5_DATA
   hdf5_data_param {
     batch_size: 1000
+    shuffle: true
     source: "/data/ConvChess/data/CvC_data_multi_elolayer_piecelayer_h5/piece_train.txt"
   }
   top: "data"

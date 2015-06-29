@@ -159,6 +159,8 @@ if args.single_file:
 		if ".npz" in piece_data_files[i]:
 			piece_data_cur= piece_data_cur['arr_0']
 			piece_label_cur = piece_label_cur['arr_0']
+		if args.shuffle:
+			piece_data_cur, piece_label_cur = shuffle_in_unison_inplace( piece_data_cur, piece_label_cur) 
 		dataset= f['data']
 		dataset.resize((curr_len+piece_label_cur.shape[0], piece_data_cur.shape[1],piece_data_cur.shape[2],piece_data_cur.shape[3]))
 		label_dataset = f['label']

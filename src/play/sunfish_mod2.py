@@ -182,9 +182,10 @@ class Position(namedtuple('Position', 'board score wc bc ep kp')):
         bb = pos_board_to_bitboard(pos_child_board)
         im = convert_bitboard_to_image(bb)
         im = np.rollaxis(im, 2, 0)
-        im1 = im[:,:,::-1] 
+        #im1 = im[:,:,::-1] 
         #we'll also check for its horizontally-flipped counterpart
-        eval_score = max(evaluator.evaluate_batch([im, im1]))
+        eval_score= evaluator.evaluate(im)[0][0]
+        #eval_score = max(evaluator.evaluate_batch([im, im1]))
         # print(bb)
         # print(eval_score)
         return eval_score
@@ -273,6 +274,7 @@ def search(pos, maxn=NODES_SEARCHED):
     # We limit the depth to some constant, so we don't get a stack overflow in
     # the end game.
     for depth in range(1, 99):
+        print ("depth %d"%depth)
         # The inner loop is a binary search on the score of the position.
         # Inv: lower <= score <= upper
         # However this may be broken by values from the transposition table,

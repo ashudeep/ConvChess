@@ -23,7 +23,7 @@ import operator
 caffe.set_mode_gpu()
 import argparse
 #import sunfish_mod
-import sunfish_mod2
+#import sunfish_mod2
 #import sunfish_mod3
 #import functools
 
@@ -76,8 +76,8 @@ def load_models(dir):
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
 
-# if trained_models == {}:
-#     load_models(args.dir)
+if trained_models == {}:
+    load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
@@ -768,22 +768,23 @@ class Sunfish_Mod3(Player):
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn1 =  10 ** (1.0 + random.random() * 3.0) # max nodes for sunfish_mod2
-    maxn2 =  10 ** (1.0 + random.random() * 3.0) # max nodes for sunfish
+    maxn1 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish_mod2
+    maxn2 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
     
     # maxd = 3#random.randint(2,5)
     # maxm = 5#random.randint(1,10)
-    #k = random.randint(3, 30)
-    print 'maxn: %f %f' % (maxn1, maxn2)
+    k = random.randint(3, 30)
+    print 'maxn: %d %d %d' % (maxn1, maxn2, k)
     # print 'maxm %d' % (maxm)
     # print 'maxd %d'% (maxd)
     f = open(args.odir+'/stats.txt', 'a')
     f.write('%d %d' %(maxn1, maxn2))
     f.close()
     #load_models(args.dir)
-    #player_a = Computer()
+    player_a = Computer()
     #player_a = Sunfish(maxn=maxn)
-    player_a = Sunfish_Mod2(maxn=maxn1)
+    #player_a = Sunfish_Mod2(maxn=maxn1)
+    #player_a = Sunfish_Mod(maxn=maxn1, k=k)
     player_b = Sunfish(maxn=maxn2)
     #player_a = MySearch(maxd=maxd, maxm=maxm)
     # if against=="human":
