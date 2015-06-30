@@ -77,7 +77,7 @@ def convert_bitboard_to_image_2(board):
 
 def convert_image_to_bitboard(im):
 	#6 channel image to bitboard
-	board = chess.Bitboard()
+	board = chess.Board()
 	board.clear()
 	for i in xrange(BOARD_SIZE[0]):
 		for j in xrange(BOARD_SIZE[1]):
@@ -94,7 +94,7 @@ def convert_image_to_bitboard(im):
 
 def convert_image_to_bitboard_2(im):
 	#12 channel image to bitboard
-	board = chess.Bitboard()
+	board = chess.Board()
 	board.clear()
 	for i in xrange(BOARD_SIZE[0]):
 		for j in xrange(BOARD_SIZE[1]):

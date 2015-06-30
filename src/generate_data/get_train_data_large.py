@@ -113,7 +113,7 @@ for f in os.listdir(PGN_DATA_DIR):
 				game_index+=1
 				continue
 			#print PGN_DATA_DIR+"/"+f, game
-			board = chess.Bitboard()
+			board = chess.Board()
 			moves = game.moves
 			if game_index < args.skip:
 				game_index+=1

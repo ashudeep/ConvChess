@@ -164,15 +164,15 @@ def getim(bb):
         #the piece layer is appended in the functions separately
     return im
 
-def predictMove_TopProbMethod(img, maxwidth=10):
+def predictMove_TopProbMethod(img, maxwidth=10, clipping=True):
     dummy = np.ones((1,), dtype='float32')
     net = trained_models['Piece']
     net.set_input_arrays(np.array([img], dtype=np.float32),dummy)
     res = net.forward()
     probs = res['prob']
-    if args.multilayer:
+    if args.multilayer and clipping:
         probs = clip_pieces_single_2(probs, img[0:12])
-    else:
+    elif clipping:
         probs = clip_pieces_single(probs, img[0:6])
     #print probs
     probs = probs.flatten()
@@ -195,9 +195,9 @@ def predictMove_TopProbMethod(img, maxwidth=10):
             res2 = model.forward()
             move_prob = res2['prob']
             #print move_prob
-            if args.multilayer:
+            if args.multilayer and clipping:
                 move_prob = clip_moves_2(move_prob, img2[0:12], (i1,i2))
-            else:
+            elif clipping:
                 move_prob = clip_moves(move_prob, img2[0:6], (i1,i2))
             #print move_prob
             cumulative_probs[piece_pos] = move_prob*probs[piece_pos]
@@ -484,10 +484,14 @@ def negamax(im, depth, alpha, beta, color, maxm):
 
 def create_move(board, crdn):
     # workaround for pawn promotions
+    #print crdn
     move = chess.Move.from_uci(crdn)
-    if board.piece_at(move.from_square).piece_type == chess.PAWN:
-        if int(move.to_square/8) in [0, 7]:
-            move.promotion = chess.QUEEN # always promote to queen
+    try:
+        if board.piece_at(move.from_square).piece_type == chess.PAWN:
+            if int(move.to_square/8) in [0, 7]:
+                move.promotion = chess.QUEEN # always promote to queen
+    except AttributeError:
+        pass
     return move
 
 class Player(object):
@@ -553,7 +557,7 @@ class Computer(Player):
         #     im = np.append(im, elo_layer, axis=0) 
         # #add the dynamic elo bias layer to be the max (=1)
         im = getim(bb)
-        move_str = predictMove_TopProbMethod(im)
+        move_str = predictMove_TopProbMethod(im, clipping=False)
         #move_str = predictMove_MaxMethod(im)
         move = chess.Move.from_uci(move_str)
 
@@ -638,6 +642,7 @@ class Sunfish(Player):
         self._pos = self._pos.move(move)
 
         crdn = sunfish.render(119-move[0]) + sunfish.render(119 - move[1])
+        #print crdn, move
         move = create_move(gn_current.board(), crdn)
         
         gn_new = chess.pgn.GameNode()
