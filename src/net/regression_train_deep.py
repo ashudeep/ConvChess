@@ -25,7 +25,7 @@ def decide_split(h5_file, ratio=0.8):
 	f = h5.File(h5_file, 'r')
 	size = f['label'].shape[0]
 	f.close()
-	training_size = int(0.8*size)
+	training_size = int(r*size)
 	return (0,training_size, training_size+1, size)
 
 if not args.cont:
@@ -75,9 +75,9 @@ import os
 if not os.path.isdir("./models/regression"):
 	os.mkdir("./models/regression")
 
-model.fit(X_train, y_train, batch_size=1024, nb_epoch=args.n, shuffle=False, callbacks=[history])
+model.fit(X_train, y_train, batch_size=args.b, nb_epoch=args.n, shuffle=False, callbacks=[history])
 
 pkl.dump(model, open("./models/regression/model_%s.pkl"%args.name, "w"))
 pkl.dump(history.losses, open("./models/regression/losses_%s.pkl"%args.name,"w"))
 
-score = model.evaluate(X_test, y_test, batch_size=2048)
+score = model.evaluate(X_test, y_test, batch_size=args.bt)
