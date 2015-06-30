@@ -3,7 +3,6 @@ from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.optimizers import SGD
 from keras.utils.io_utils import HDF5Matrix
-from keras.callbacks import ModelCheckpoint
 import keras
 import cPickle as pkl
 import sys
@@ -25,7 +24,7 @@ def decide_split(h5_file, ratio=0.8):
 	f = h5.File(h5_file, 'r')
 	size = f['label'].shape[0]
 	f.close()
-	training_size = int(0.8*size)
+	training_size = int(ratio*size)
 	return (0,training_size, training_size+1, size)
 
 if not args.cont:
