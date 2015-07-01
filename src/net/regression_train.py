@@ -29,7 +29,7 @@ def decide_split(h5_file, ratio=0.8):
 
 if not args.cont:
 	model = Sequential()
-	model.add(Convolution2D(96, 6, 3, 3, border_mode='full')) 
+	model.add(Convolution2D(96, 6, 5, 5, border_mode='full')) 
 	model.add(Activation('relu'))
 	model.add(Convolution2D(256, 96, 3, 3))
 	model.add(Activation('relu'))
@@ -38,7 +38,7 @@ if not args.cont:
 	model.add(Activation('relu'))
 
 	model.add(Flatten())
-	model.add(Dense(384*6*6, 1024))
+	model.add(Dense(384*8*8, 1024))
 	model.add(Activation('relu'))
 	model.add(Dropout(0.5))
 
