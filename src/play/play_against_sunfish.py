@@ -230,10 +230,13 @@ class Sunfish(Player):
 def game(func):
     gn_current = chess.pgn.Game()
 
-    maxd = random.randint(3, 3) # max depth for deep pink
+    maxd = 4 #random.randint(4, 4) # max depth for deep pink
     maxn = 10 ** (1.0 + random.random() * 1.0) # max nodes for sunfish
 
     print 'maxd %f maxn %f' % (maxd, maxn)
+    f = open('stats.txt', 'a')
+    f.write('%d %d' % (maxd, maxn))
+    f.close()
 
     player_a = Computer(func, maxd=maxd)
     player_b = Sunfish(maxn=maxn)
@@ -269,11 +272,12 @@ def play():
     #func = get_model_from_pickle('model.pickle')
     evaluator = CNN_evaluator('regression_models/fics_g07_3.pkl')
     func = evaluator.evaluate_batch
-    side, times = game(func)
-    f = open('stats.txt', 'a')
-    f.write('%s %f %f\n' % (side, times['A'], times['B']))
-    print "%s won. Times %f %f"%(side, times['A'], times['B'])
-    f.close()
+    for i in xrange(1000):
+    	side, times = game(func)
+    	f = open('stats.txt', 'a')
+    	f.write('%s %f %f\n' % (side, times['A'], times['B']))
+    	print "%s won. Times %f %f"%(side, times['A'], times['B'])
+    	f.close()
 
         
 if __name__ == '__main__':

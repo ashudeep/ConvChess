@@ -163,7 +163,7 @@ def clip_pieces_single_2(prob_dist, im, normalize=True):
 	in them.
 
 	# 1, 64 : dimension of prob_dists
-	# 6, 8, 8 : dimensions of ims
+	# 12, 8, 8 : dimensions of ims
 	'''
 	if im.shape[0]>12: #if there is an elo rating layer, just remove it
 		im = im[0:12]
@@ -217,7 +217,7 @@ def clip_moves(prob_dist, im, coord, normalize=True):
 			to_coord = coord2d_to_chess_coord((i, j))
 			uci_move = piece_coord + to_coord
 			# print chess.Move.from_uci(uci_move), chess.Move.from_uci(uci_move) in board.legal_moves
-			if chess.Move.from_uci(uci_move) not in board.legal_moves:
+			if chess.Move.from_uci(uci_move) not in board.pseudo_legal_moves:
 				# print "And I zerod it"
 				c = flatten_coord2d((i, j))
 				# print "Before: ", prob_dist[:, c]
@@ -257,17 +257,21 @@ def clip_moves_2(prob_dist, im, coord, normalize=True):
 	board = convert_image_to_bitboard_2(im2)
 
 	piece_coord = coord2d_to_chess_coord(coord)
+	#print piece_coord
 	for i in xrange(BOARD_SIZE[0]):
 		for j in xrange(BOARD_SIZE[1]):
 			to_coord = coord2d_to_chess_coord((i, j))
 			uci_move = piece_coord + to_coord
 			# print chess.Move.from_uci(uci_move), chess.Move.from_uci(uci_move) in board.legal_moves
-			if chess.Move.from_uci(uci_move) not in board.legal_moves:
-				# print "And I zerod it"
-				c = flatten_coord2d((i, j))
-				# print "Before: ", prob_dist[:, c]
-				prob_dist2[:, c] = 0.0
-				# print "After: ", prob_dist[:, c]
+			try:
+				if chess.Move.from_uci(uci_move) not in board.pseudo_legal_moves:
+					# print "And I zerod it"
+					c = flatten_coord2d((i, j))
+					# print "Before: ", prob_dist[:, c]
+					prob_dist2[:, c] = 0.0
+					# print "After: ", prob_dist[:, c]
+			except AssertionError:
+				pass
 	# print np.zeros_like(prob_dist) == prob_dist
 	if np.sum(prob_dist2)>0 and normalize:
 		return prob_dist2/np.sum(prob_dist2)

@@ -286,7 +286,7 @@ def bound(pos, gamma, depth, k=10):
     #print(moves)
     for move in sorted(moves, key=pos.value, reverse=True):
         # We check captures with the value function, as it also contains ep and kp
-        if depth <= 0:
+        if depth <= 0 and pos.value(move) < 150:
             break
         score = -bound(pos.move(move), 1-gamma, depth-1, k)
         if score > best:

@@ -17,6 +17,8 @@ parser.set_defaults(mode='test')
 parser.set_defaults(filetype='txt')
 parser.set_defaults(modelname='Piece')
 args = parser.parse_args()
+if args.filetype == 'pkl':
+ 	import cPickle as pkl
 
 skip_header = args.header
 if args.mode == 'test':
@@ -47,20 +49,25 @@ if args.mode == 'test':
 	ax1.plot(x,y1)
 	ax1.set_xlabel('Number of iterations',family='serif')
 	ax1.set_ylabel('Training Loss',family='serif')
+	ax1.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 	ax2 = plt.subplot(132, sharey=ax1)
 	ax2.plot(x,y2)
 	ax2.set_xlabel('Number of iterations',family='serif')
 	ax2.set_ylabel('Test Loss',family='serif')
+	ax2.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 	ax3 = plt.subplot(133)
-	ax3.plot(x,y3, 'g', label='Accuracy at k=1')
-	ax3.plot(x,y4, 'g:', label='Accuracy at k=3')
-	ax3.plot(x,y5,'b--', label='Accuracy at k=5')
-	ax3.plot(x,y6,'b-.', label='Accuracy at k=10')
+	ax3.plot(x,y3, 'g', label='k=1')
+	ax3.plot(x,y4, 'g--', label='k=3')
+	ax3.plot(x,y5,'b--', label='k=5')
+	ax3.plot(x,y6,'b', label='k=10')
 	ax3.set_xlabel('Number of iterations',family='serif')
 	ax3.set_ylabel('Test Accuracies',family='serif')
+	ax3.yaxis.tick_right()
+	ax3.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
+	ax3.yaxis.set_label_position("right")
 	legend = ax3.legend(loc='lower right', shadow=True,numpoints=1)
-	fig.suptitle('Results for %s model'%args.modelname, family='serif',
-		fontsize=20)
+	#fig.suptitle('Results for %s model'%args.modelname, family='serif',
+	#	fontsize=20)
 	plt.show()
 	if args.output:
 		plt.savefig(args.output+'/plot.png')
@@ -80,9 +87,10 @@ elif args.mode =='train':
 	else:
 		print "File %s type not supported"%args.filetype
 	plt.plot(range(len(losses))[::int(1.0/args.ld)],losses[::int(1.0/args.ld)])
-	plt.suptitle('Training Loss vs Number of iterations for %s model'%args.modelname, family='serif', fontsize=20)
+	#plt.suptitle('Training Loss vs Number of iterations for %s model'%args.modelname, family='serif', fontsize=20)
 	plt.xlabel('Number of iterations')
 	plt.ylabel('Training Loss')
+	plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 	plt.show()
 	if args.output:
 		plt.savefig(args.output+'/plot.png')

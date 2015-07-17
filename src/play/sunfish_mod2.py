@@ -10,7 +10,7 @@ from util import *
 from td_evaluate import *
 import numpy as np
 import re
-MODEL_FILE = "regression_models/fics_g07_3.pkl"
+MODEL_FILE = "regression_models/model_g07_all_large_deep_do_2.pkl"
 evaluator = CNN_evaluator(MODEL_FILE)
 
 # The table size is the maximum number of elements in the transposition table.

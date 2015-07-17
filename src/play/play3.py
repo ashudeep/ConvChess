@@ -24,7 +24,7 @@ caffe.set_mode_gpu()
 import argparse
 #import sunfish_mod
 #import sunfish_mod2
-#import sunfish_mod3
+#import sunfish_mod2
 #import functools
 
 parser=argparse.ArgumentParser\
@@ -63,7 +63,7 @@ trained_models = {}
 INDEX_TO_PIECE_2 = {0 : 'Pawn', 1 : 'R', 2 : 'N', 3 : 'B', 4 : 'Q', 5 : 'K'}
 CHECKMATE_SCORE = 1e6  
 TOP_MOVES_CACHE = {}
-CACHING = False
+CACHING = True
 def load_models(dir):
     model_names = ['piece', 'pawn', 'rook', 'knight', 'bishop', 'queen', 'king']
     names = ['Piece', 'P', 'R', 'N', 'B', 'Q', 'K']
@@ -76,8 +76,8 @@ def load_models(dir):
         trained_model = caffe.Net(net_path, model_path,caffe.TEST)
         trained_models[names[index]] = trained_model
 
-if trained_models == {}:
-    load_models(args.dir)
+# if trained_models == {}:
+#     load_models(args.dir)
 
 def predict(X, model, fn):
     return fn(X, model)
@@ -242,7 +242,7 @@ def evaluate_moves(img, moves):
     return scores
 
 
-def get_top_moves(img, k, vals=True, valType='prob', clipping=True):
+def get_top_moves(img, k, vals=True, valType='prob', clipping=False):
     #valType can be 'prob' or 'fc1'
     global CACHING
     global TOP_MOVES_CACHE
@@ -421,7 +421,10 @@ def negamax(im, depth, alpha, beta, color, maxm):
             if not np.any(pos_child[kings_layer,:,:]):
                 value = 1.0/CHECKMATE_SCORE
                 print "checkmate is going to happen"
-            neg_value, _ = negamax(pos_child, depth-1, -beta, -alpha, -color, maxm)
+            if color == -1:
+                neg_value, _ = negamax(pos_child[:,:,::-1], depth-1, -beta, -alpha, -color, maxm)
+            else:
+                neg_value, _ = negamax(pos_child, depth-1, -beta, -alpha, -color, maxm)
             value = val/neg_value
         if value > best_value:
             best_value = value
@@ -557,7 +560,7 @@ class Computer(Player):
         #     im = np.append(im, elo_layer, axis=0) 
         # #add the dynamic elo bias layer to be the max (=1)
         im = getim(bb)
-        move_str = predictMove_TopProbMethod(im, clipping=False)
+        move_str = predictMove_TopProbMethod(im, clipping=True)
         #move_str = predictMove_MaxMethod(im)
         move = chess.Move.from_uci(move_str)
 
@@ -773,25 +776,25 @@ class Sunfish_Mod3(Player):
 def game():
     gn_current = chess.pgn.Game()
 
-    maxn1 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish_mod2
-    maxn2 =  10 ** (1.0 + random.random() * 2.0) # max nodes for sunfish
-    
+    maxn1 =  10 ** (1.0 + random.random() * 1.0) # max nodes for sunfish_mod2
+    maxn2 =  10 ** (1.0 + random.random() * 1.0) # max nodes for sunfish
+    maxd = random.randint(2,3)
     # maxd = 3#random.randint(2,5)
     # maxm = 5#random.randint(1,10)
-    k = random.randint(3, 30)
-    print 'maxn: %d %d %d' % (maxn1, maxn2, k)
+    #k = random.randint(10, 30)
+    print 'maxn: %d %d %d' % (maxn1, maxn2, 30)
     # print 'maxm %d' % (maxm)
     # print 'maxd %d'% (maxd)
     f = open(args.odir+'/stats.txt', 'a')
     f.write('%d %d' %(maxn1, maxn2))
     f.close()
     #load_models(args.dir)
-    player_a = Computer()
+    #player_a = Computer()
     #player_a = Sunfish(maxn=maxn)
-    #player_a = Sunfish_Mod2(maxn=maxn1)
+    player_a = Sunfish_Mod2(maxn=maxn1)
     #player_a = Sunfish_Mod(maxn=maxn1, k=k)
     player_b = Sunfish(maxn=maxn2)
-    #player_a = MySearch(maxd=maxd, maxm=maxm)
+    #player_a = MySearch(maxd=maxd, maxm=30)
     # if against=="human":
     #     player_b = Human()
     # elif against=="sunfish":
@@ -847,5 +850,5 @@ def play():
 
 if __name__ == '__main__':
     #load_models(args.dir)
-    for i in xrange(10):
+    for i in xrange(1000):
         play()

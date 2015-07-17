@@ -171,10 +171,10 @@ accuracies = correct_preds/num_moves_arr[:,None]
 import matplotlib.pyplot as plt
 colors = ['k','b','g','r','m','c','y']
 for j,i in enumerate([1,5,10,20,30]):
-	plt.plot(accuracies[:,i-1],colors[j-1], label='Accuracy at k=%d'%i)
-plt.legend(loc='upper right', numpoints =1)
+	plt.plot(accuracies[:,i-1],colors[j-1], label='k=%d'%i)
+plt.legend(loc='lower right', numpoints =1)
 plt.xlabel('Move Number in the game')
-plt.ylabel('Accuracy')
+plt.ylabel('Move Accuracy')
 plt.suptitle('Accuracy vs Move number for %d games'%num_games, fontsize=20, family='serif')
 plt.show()
 
