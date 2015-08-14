@@ -5,8 +5,3 @@
 *.caffemodel
 *.solverstate
 src/net/models/*/results.txt
-*.aux
-*.backup
-*.tuo
-*.tui
-*.out

@@ -1,9 +1,0 @@
-@incollection{hauptman2007evolution,
-  title={Evolution of an efficient search algorithm for the mate-in-N problem in 
-chess},
-  author={Hauptman, Ami and Sipper, Moshe},
-  booktitle={Genetic Programming},
-  pages={78--89},
-  year={2007},
-  publisher={Springer}
-}
