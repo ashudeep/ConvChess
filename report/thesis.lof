@@ -1,0 +1,30 @@
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Fully connected layer's TSNE embedding in Deepmind's network}}{3}{figure.caption.5}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces An artificial neuron as a mathematical model\relax }}{14}{figure.caption.7}
+\contentsline {figure}{\numberline {1.3}{\ignorespaces A two layer Artificial Neural network\relax }}{15}{figure.caption.8}
+\contentsline {figure}{\numberline {1.4}{\ignorespaces A typical Convolutional Neural Network architecture\relax }}{17}{figure.caption.9}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Dataset statistics\relax }}{21}{figure.caption.12}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces \textbf {6-channel representation} of the initial chess board position\relax }}{22}{figure.caption.13}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces \textbf {12-channel representation} of the initial chess board position\relax }}{23}{figure.caption.14}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Model Overview\relax }}{25}{figure.caption.15}
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Network Architecture: ChessNet-1\relax }}{26}{figure.caption.16}
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Network Architecture: ChessNet-2\relax }}{30}{figure.caption.17}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Variation of the softmax-loss while training of \textsc {PIECE} model\relax }}{36}{figure.caption.18}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Variation of the accuracies on test set while training}}{37}{figure.caption.19}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Variation of accuracies with move number}}{41}{figure.caption.23}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Variation of Top-k accuracy with k}}{41}{figure.caption.24}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Predictions for initial board position}}{43}{figure.caption.25}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Predictions for a checkmate-in-1 position\relax }}{44}{figure.caption.27}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Prediction: Detecting a check\relax }}{45}{figure.caption.28}
+\contentsline {figure}{\numberline {3.8}{\ignorespaces Prediction: En passant move\relax }}{46}{figure.caption.29}
+\contentsline {figure}{\numberline {3.9}{\ignorespaces Prediction: Castling move\relax }}{47}{figure.caption.30}
+\contentsline {figure}{\numberline {3.10}{\ignorespaces Middle game case study}}{49}{figure.caption.31}
+\contentsline {figure}{\numberline {3.11}{\ignorespaces Evaluation function: Capturing a Queen with a knight\relax }}{50}{figure.caption.33}
+\contentsline {figure}{\numberline {3.12}{\ignorespaces Evaluation function: Checkmate in one move\relax }}{51}{figure.caption.34}
+\contentsline {figure}{\numberline {3.13}{\ignorespaces Evaluation function: Check detection and promotion prevention\relax }}{52}{figure.caption.35}
+\contentsline {figure}{\numberline {3.14}{\ignorespaces Correlation between $V_{\gamma =0.7}$ and $V_{\textsc {MATERIAL}}$}}{54}{figure.caption.37}
+\contentsline {figure}{\numberline {3.15}{\ignorespaces Comparing the evaluation functions $V_{\gamma =0.7}$ and $V_{\textsc {MATERIAL}}$ \relax }}{55}{figure.caption.38}
+\contentsline {figure}{\numberline {3.16}{\ignorespaces Game Trajectories}}{56}{figure.caption.39}
+\addvspace {10\p@ }

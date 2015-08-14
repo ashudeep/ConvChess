@@ -1,0 +1,24 @@
+\BOOKMARK [0][-]{figure.caption.1}{Abstract}{}% 1
+\BOOKMARK [0][-]{chapter*.3}{List of Tables}{}% 2
+\BOOKMARK [0][-]{chapter*.4}{List of Figures}{}% 3
+\BOOKMARK [0][-]{chapter.5}{1 Introduction}{}% 4
+\BOOKMARK [0][-]{chapter.6}{2 Related Work}{}% 5
+\BOOKMARK [1][-]{section.7}{2.1 Solving Chess}{chapter.6}% 6
+\BOOKMARK [1][-]{section.10}{2.2 Playing Chess using Computers}{chapter.6}% 7
+\BOOKMARK [1][-]{section.16}{2.3 Deep Learning}{chapter.6}% 8
+\BOOKMARK [1][-]{section.22}{2.4 }{chapter.6}% 9
+\BOOKMARK [0][-]{chapter.23}{3 Dataset Representation}{}% 10
+\BOOKMARK [1][-]{section.24}{3.1 Dataset Acquisition}{chapter.23}% 11
+\BOOKMARK [1][-]{section.29}{3.2 Data Representation}{chapter.23}% 12
+\BOOKMARK [0][-]{chapter.42}{4 Implementation}{}% 13
+\BOOKMARK [1][-]{section.43}{4.1 Network Architecture}{chapter.42}% 14
+\BOOKMARK [1][-]{section.46}{4.2 Playing}{chapter.42}% 15
+\BOOKMARK [1][-]{section.47}{4.3 Choosing a move}{chapter.42}% 16
+\BOOKMARK [0][-]{chapter.53}{5 Analysis and Results}{}% 17
+\BOOKMARK [1][-]{section.54}{5.1 Training: Implementation details and Hyper parameters}{chapter.53}% 18
+\BOOKMARK [1][-]{section.58}{5.2 Performance of Piece and Move networks}{chapter.53}% 19
+\BOOKMARK [1][-]{section.60}{5.3 Performance after masking}{chapter.53}% 20
+\BOOKMARK [1][-]{section.67}{5.4 Sample moves taken by the network}{chapter.53}% 21
+\BOOKMARK [1][-]{section.77}{5.5 Board Evaluations}{chapter.53}% 22
+\BOOKMARK [1][-]{section.86}{5.6 Gameplay}{chapter.53}% 23
+\BOOKMARK [0][-]{section.86}{Bibliography}{}% 24

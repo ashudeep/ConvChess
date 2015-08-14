@@ -1,0 +1,166 @@
+\documentclass[12pt,a4paper]{book}
+
+% margins
+\usepackage[left=35mm,top=25mm,right=25mm,bottom=25mm]{geometry}
+
+% centering captions
+\usepackage[labelfont=bf,labelsep=quad,justification=justified, 
+font=small]{caption}
+% \DeclareCaptionFont{tiny}{\tiny}
+% \captionsetup{font=tiny}
+% mathematical expressions
+\usepackage{mathtools}
+\usepackage{textcomp}
+\everymath{\displaystyle}
+\usepackage{array,longtable,calc}
+%\usepackage{algorithm2e}
+\usepackage{pdfpages}
+
+% to write the date in the desired format
+\usepackage{datetime}
+\usepackage{ragged2e}
+% for including figures
+%\usepackage{graphics}
+
+% for including figures
+\usepackage{graphicx}
+
+% \usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\algrenewcommand{\Return}{\State \textbf{return}\ }
+\algnewcommand{\funccall}[1]{\textit{#1}}
+\usepackage[export]{adjustbox}[2011/08/13]
+% for doublespacing singlespacing etc.
+\usepackage{setspace}
+
+\usepackage[round]{natbib}
+\renewcommand{\cite}{\citep}
+\usepackage{pgf}
+\usepackage[pdftex,colorlinks, pagebackref=true]{hyperref}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{tabularx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\graphicspath{{img/}}
+
+\usepackage{tikz}
+\usetikzlibrary{matrix,chains,positioning,decorations.pathreplacing,arrows}
+\usetikzlibrary{arrows.new}
+\usetikzlibrary{fadings}
+
+\makeatletter
+\def\@lbibitem[#1]#2{%
+\if\relax\@extra@b@citeb\relax\else
+\@ifundefined{br@#2\@extra@b@citeb}{}{%
+\@namedef{br@#2}{\@nameuse{br@#2\@extra@b@citeb}}}\fi
+\@ifundefined{b@#2\@extra@b@citeb}{\def\NAT@num{}}{\NAT@parse{#2}}%
+\item[\hfil\hyper@natanchorstart{#2\@extra@b@citeb}\citep{#2}%
+\hyper@natanchorend]%
+\NAT@ifcmd#1(@)(@)\@nil{#2}}
+\makeatother
+
+\newdateformat{monthyear}{\monthname[\THEMONTH], \THEYEAR}
+\newcommand*\rfrac[2]{{}^{#1}\!/_{#2}}
+
+\renewcommand*{\backref}[1]{}
+\renewcommand*{\backrefalt}[4]{({\small%
+    \ifcase #1 Not cited.%
+          \or page~#2%
+          \else pages~#2%
+    \fi%
+    })}
+
+\def\title{Convolutional Neural Networks learn to play Chess}
+\def\degree{Master of Technology}
+\def\author{Ashudeep Singh}
+\def\rollno{10327162}
+\def\advisor{Prof. Amitabha Mukerjee}
+\def\department{Department of Computer Science and Engineering}
+\def\institute{Indian Institute of Technology Kanpur}
+\definecolor{blue}{rgb}{0.0, 0.15, 0.85}
+
+\hypersetup{
+	bookmarks=true,
+	bookmarksopen=true,
+	bookmarksopenlevel=0,
+	bookmarksnumbered=true,
+	hypertexnames=true,
+	colorlinks=true,
+	linkcolor={blue},
+	citecolor={blue},
+	urlcolor={blue},
+	breaklinks=true,
+	pdfauthor={\author},
+	pdftitle={\title},
+	plainpages=false
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[EL]{\nouppercase\leftmark}
+\fancyhead[OR]{\nouppercase\rightmark}
+\fancyhead[ER,OL]{\thepage}
+\usepackage[none]{hyphenat}
+\usepackage{dirtytalk}
+\usepackage[toc,page]{appendix}
+\begin{document}
+	\frontmatter
+	\include{title}
+	
+	\thispagestyle{empty}
+	\pagestyle{plain}
+	\cleardoublepage
+	\include{certificate}
+%	\includepdf{certificate_signed.pdf}
+
+	\pagenumbering{roman}
+	\pagestyle{plain}
+	\setcounter{page}{4}
+	\addcontentsline{toc}{chapter}{Abstract}
+	
+	\onehalfspace
+	\include{abstract}
+	\include{dedication}
+	\include{acknowledgement}
+	
+	\doublespacing
+	\setcounter{secnumdepth}{4}
+	\setcounter{tocdepth}{2}
+	\tableofcontents
+	\listoftables
+	\addcontentsline{toc}{chapter}{List of Tables}
+	\listoffigures
+	\addcontentsline{toc}{chapter}{List of Figures}
+%	\listofalgorithms
+%	\addcontentsline{toc}{chapter}{List of Algorithms}
+	
+	\mainmatter
+	\doublespacing
+	\pagenumbering{arabic}
+	\pagestyle{fancy}
+	
+	\include{introduction}
+% 	\include{background}
+	\include{dataset}
+	\include{implementation}
+	\include{results}
+	\include{conclusion}
+	
+	\backrefsetup{disable}
+%	\appendix 
+%	\include{appendix}
+	\thispagestyle{empty}
+	\cleardoublepage
+	\phantomsection
+	\backmatter
+	\singlespacing
+	
+	\addcontentsline{toc}{chapter}{Bibliography}
+	\bibliographystyle{apalike}
+	\bibliography{references}
+\end{document}

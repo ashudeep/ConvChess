@@ -1,0 +1,83 @@
+\begin{thebibliography}{}
+
+\bibitem[Ahle, 2015]{sunfish}
+Ahle, T.~D. (2015).
+\newblock Sunfish.
+\newblock \url{https://github.com/thomasahle/sunfish}.
+
+\bibitem[Bengio et~al., 2015]{bengio-dl-book}
+Bengio, Y., Goodfellow, I.~J., and Courville, A. (2015).
+\newblock Deep learning.
+\newblock Book in preparation for MIT Press.
+
+\bibitem[Chase and Simon, 1973]{chase1973perception}
+Chase, W.~G. and Simon, H.~A. (1973).
+\newblock Perception in chess.
+\newblock {\em Cognitive psychology}, 4(1):55--81.
+
+\bibitem[Chollet, 2015]{keras}
+Chollet, F. (2015).
+\newblock Keras.
+\newblock \url{https://github.com/fchollet/keras}.
+
+\bibitem[Ciresan et~al., 2012]{ciresan2012multi}
+Ciresan, D., Meier, U., and Schmidhuber, J. (2012).
+\newblock Multi-column deep neural networks for image classification.
+\newblock In {\em Computer Vision and Pattern Recognition (CVPR), 2012 IEEE
+  Conference on}, pages 3642--3649. IEEE.
+
+\bibitem[De~Groot et~al., 1996]{de1996perception}
+De~Groot, A.~D., Gobet, F., and Jongman, R.~W. (1996).
+\newblock {\em Perception and memory in chess: Studies in the heuristics of the
+  professional eye.}
+\newblock Van Gorcum \& Co.
+
+\bibitem[Jia et~al., 2014]{jia2014caffe}
+Jia, Y., Shelhamer, E., Donahue, J., Karayev, S., Long, J., Girshick, R.,
+  Guadarrama, S., and Darrell, T. (2014).
+\newblock Caffe: Convolutional architecture for fast feature embedding.
+\newblock {\em arXiv preprint arXiv:1408.5093}.
+
+\bibitem[Krizhevsky et~al., 2012]{krizhevsky2012imagenet}
+Krizhevsky, A., Sutskever, I., and Hinton, G.~E. (2012).
+\newblock Imagenet classification with deep convolutional neural networks.
+\newblock In {\em Advances in neural information processing systems}, pages
+  1097--1105.
+
+\bibitem[Maddison et~al., 2014]{maddison2014move}
+Maddison, C.~J., Huang, A., Sutskever, I., and Silver, D. (2014).
+\newblock Move evaluation in go using deep convolutional neural networks.
+\newblock {\em arXiv preprint arXiv:1412.6564}.
+
+\bibitem[Mnih et~al., 2013]{deepmind_nips}
+Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A., Antonoglou, I., Wierstra,
+  D., and Riedmiller, M. (2013).
+\newblock Playing atari with deep reinforcement learning.
+\newblock {\em arXiv preprint arXiv:1312.5602}.
+
+\bibitem[Shannon, 1950]{shannon1950xxii}
+Shannon, C.~E. (1950).
+\newblock Xxii. programming a computer for playing chess.
+\newblock {\em The London, Edinburgh, and Dublin Philosophical Magazine and
+  Journal of Science}, 41(314):256--275.
+
+\bibitem[Taigman et~al., 2014]{taigman2014deepface}
+Taigman, Y., Yang, M., Ranzato, M., and Wolf, L. (2014).
+\newblock Deepface: Closing the gap to human-level performance in face
+  verification.
+\newblock In {\em Computer Vision and Pattern Recognition (CVPR), 2014 IEEE
+  Conference on}, pages 1701--1708. IEEE.
+
+\bibitem[Tompson et~al., 2014]{tompson2014efficient}
+Tompson, J., Goroshin, R., Jain, A., LeCun, Y., and Bregler, C. (2014).
+\newblock Efficient object localization using convolutional networks.
+\newblock {\em arXiv preprint arXiv:1411.4280}.
+
+\bibitem[Zermelo, 1913]{zermelo1913anwendung}
+Zermelo, E. (1913).
+\newblock {\"U}ber eine anwendung der mengenlehre auf die theorie des
+  schachspiels.
+\newblock In {\em Proceedings of the fifth international congress of
+  mathematicians}, volume~2, pages 501--504. II, Cambridge UP, Cambridge.
+
+\end{thebibliography}

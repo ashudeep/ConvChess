@@ -1,0 +1,219 @@
+\chapter{Dataset: Acquisition and Representation}
+\label{chap:dataset}
+In this chapter, we describe the dataset and its representation used in our 
+work to learn the game of chess using convolutional neural networks.
+
+\section{Dataset Acquisition}
+We acquired two datasets from FICS Games 
+Database\footnote{\url{http://www.ficsgames.org/}} website. The first 
+one is a set of games played between chess players with average ELO rating 
+greater than 2000 in the year 2014. The second one consists of 
+the set of games played between computer chess engines played between 2009 and 
+2014.
+\subsection{Training and Testing Dataset}
+The set of games in each of the two datasets was fragmented into moves, where 
+each move was represented by a board representation (described in the next 
+section) and a label (the position of the piece moved and the position to which 
+the piece was moved). We flip the board across the horizontal after flipping 
+the color of each piece to convert the move made by the players with black 
+pieces to the corresponding move by a player with white pieces. We discard the 
+moves played by players with ELO rating less than 2000 since we had enough data 
+to not consider them as an ``expert''. \\
+%Is this a problem? Because white player always moves first. So we have the 
+% black moves when an odd number of moves have taken place. Don't know if it 
+% matters!
+% The number of moves after augmenting the player 2 moves and discarding less 
+% than 2000 ELO rating players' moves was 10M and 40M respectively.
+We shuffle the data because of two reasons:
+\begin{itemize} 
+\item Our models and training procedures do not utilize the order in which the 
+game was played. Each move is learnt with respect to the position of the pieces 
+on the board.
+\item We use batched stochastic gradient descent to learn the parameters of our 
+models. Learning from consecutive samples can introduce high variance in the 
+updates. This happens due to the strong correlations between consecutive samples 
+and resultantly makes the learning procedure inefficient \cite{deepmind_nips}\\
+The data-set was split as follows.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+Dataset Name & Number of Games 	& Total number of moves  \\
+\midrule
+CvC 2009-14  & $370,480$	& $74,162,875$             \\ 
+FICS 2014 (avg ELO$>$2000)    & $522,356$    	& $32,598,059$      \\
+FICS 2014 (all ELO, subset) & $\sim 1M$ & $\sim 125M$\\
+\bottomrule
+\end{tabular}
+\caption{Dataset sizes}
+\end{table}
+
+\begin{figure}
+  \hspace{0.5in}
+  \scalebox{.7}{\input{img/dataset.pgf}}
+  \caption{Dataset statistics}
+  \label{figure:datasets}
+\end{figure}
+% \begin{figure}
+%   \includegraphics[width=1.0\textwidth,center]{plots/dataset_size_fics.pdf}
+%   \caption{Dataset statistics for the FICS(2014) dataset}
+%   \label{figure:datasets}
+% \end{figure}
+
+\section{Data Representation}
+\subsection{Training data for Piece and Move predictors}
+Since we divide our task of evaluating a move into first evaluating the position 
+of the piece to be played and then evaluating the position to which the piece 
+will be played, we represent the data according to the tasks. Effectively, we 
+have 7 datasets to train on-- First where the labels are the positions of the 
+piece to be played for the input board, and rest of the 6 (for each piece type) 
+where the inputs are again the current board positions, but the labels are the 
+final positions if any one of that particular type of piece is chosen. We name 
+the datasets as-- piece dataset, pawn dataset, rook dataset and so on. 
+
+\subsection{Basic representation}
+Following 2 representations were used to represent a chess board:
+\begin{enumerate}
+\item\textbf{6-channel}: Each board position is represented as 6 channels of 
+$8\times 8$ images with values from the set $\{-1,0,1\}$. Each channel 
+represents the piece types, namely pawn, rook, knight, bishop, queen, king 
+respectively. The friendly player's pieces are represented by a 1 in the 
+respective position in the respective channel, while the opponent's pieces are 
+represented by a -1 in the respective position in the respective channel. Rest 
+of the elements in the $8\times 8$ grid are 0's.\\
+Board representation dimensions: $8\times 8 \times 6$\\
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{best_moves/output_17_0.png}
+\begin{longtable}[width=\textwidth]{ll}
+\small
+   \begin{tabular}[width=0.33\textwidth]{|llllllll|}
+    \hline
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    -1 & -1 & -1 & -1 & -1 & -1 & -1 & -1 \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    1  & 1  & 1  & 1  & 1  & 1  & 1  & 1  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\ \hline
+    \end{tabular}
+    &
+\dots\dots\hspace{0.2cm}
+\small
+    \begin{tabular}[width=0.33\textwidth]{|llllllll|}
+    \hline
+    0  & 0  & 0  & 0  & -1  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 1  & 0  & 0  & 0  \\ \hline
+    \end{tabular}
+  \end{longtable}
+\caption{\textbf{6-channel representation} of the initial chess board position}
+\small
+Leftmost matrix represents the pawn channel. It is followed by the channels 
+for Rook, Knight, Bishop and Queen and the rightmost matrix represents the 
+king channel.
+\end{figure}
+
+\label{section:representation12}
+\item\textbf{12-channel}: Each board position is represented as 12 channels of 
+$8\times 8$ images with values from the set $\{0,1\}$. Every alternate channel 
+belongs to a single player and similar to the 6-channel representation each of 
+these channels represents the piece types, namely pawn, rook, knight, bishop, 
+queen, king respectively. The friendly player's pieces are represented by a 1 in 
+the respective position in the respective channel, while the opponent's pieces 
+are represented by a 1 in the respective position in the respective channel. 
+Rest of the elements in the $8\times 8$ grid are 0's.\\
+Board Representation dimensions: $8\times 8 \times 12$ (Width, Height, Depth)
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{best_moves/output_17_0.png}
+\begin{longtable}[width=\textwidth]{ll}
+\small
+   \begin{tabular}[width=0.33\textwidth]{|llllllll|}
+    \hline
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    1  & 1  & 1  & 1  & 1  & 1  & 1  & 1  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\ \hline
+    \end{tabular}
+    &
+\dots\dots\hspace{0.2cm}
+\small
+    \begin{tabular}[width=0.33\textwidth]{|llllllll|}
+    \hline
+    0  & 0  & 0  & 0  & 1  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\
+    0  & 0  & 0  & 0  & 0  & 0  & 0  & 0  \\ \hline
+    \end{tabular}
+  \end{longtable}
+\caption{\textbf{12-channel representation} of the initial chess board position}
+\small
+Leftmost matrix represents the White-pawn channel. It is followed by a 
+channel for Black-pawns, then two channels each for Rook, Knight, Bishop and 
+Queen and the rightmost matrix represents the Black-king channel.
+\end{figure}
+
+\end{enumerate}
+
+\subsection{Additional Bias channels}
+The dataset provides us with additional information about the players as well as 
+the game. We try to utilize that additional information by augmenting additional 
+channels to the board representations. 
+\begin{enumerate}
+\item \textbf{ELO Layer}: We append an $8\times 8$ channel with the ELO rating 
+(normalized) of the player playing the current move. So, if the ELO rating of 
+the current player is X, we will augment the $8\times 8$ matrix consisting of 
+all values equal to $\frac{X-MINELO}{MAXELO-MINELO}$, where the values of MINELO 
+and MAXELO are the minimum and maximum ELO ratings of the players in the 
+complete dataset. This adds an additional $8\times 8\times 1$ image to the 
+input.
+
+\item \textbf{Piece Layer}: Since the task for the move predictor is just to 
+predict the final position of a model-specified piece, we provide the move 
+predictor learning procedure(s) the actual piece in consideration for the move. 
+In particular, we augment an additional channel with all 0s except a 1 in the 
+place of the piece being moved.\\
+This information makes the learning procedure much more efficient since it no 
+longer has to learn, from the data, which piece is moved and is already learnt 
+by the piece selector. Adding this channel gives us a more consistent 
+probability metric to decide the move (described in~\ref{subsection:topprob}).
+
+This adds an additional $8\times 8\times 1$ image to the input.\\
+Although the inclusion of this layer seems intuitive and beneficial, the 
+downside to a piece specific channel is that it makes the move prediction 
+procedure much slower. This happens because the final position probability 
+distribution has to be predicted for all the pieces of the same type separately. 
+If this layer is not included, we can cache the probability distributions by the 
+move prediction network for each piece types the first time they are queried. 
+Besides this disadvantage, the piece layer increases the prediction accuracy of 
+the \textsc{Move} networks. 
+
+\item \textbf{Result Layer}: The result layer is another dynamic bias layer 
+which is appended to the input image layers which indicates the final outcome of 
+the game corresponding to the player facing the current board position. 
+Specifically, we append an image of all ones for a player who finally won the 
+game by resignation or check-mate, an image of all zeros for a player who 
+finally lost or resigned the game, or an image of all values as $0.5$ for both 
+the players if the game was a draw. This adds an additional $8\times 8\times 1$ 
+image to the input.\\
+The significance of this layer is to give an additional information to the model 
+which can help evaluating the quality of the move better.\\
+
+\end{enumerate}

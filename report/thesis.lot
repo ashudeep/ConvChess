@@ -1,0 +1,13 @@
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {1.1}{\ignorespaces Time taken to explore 30 moves per position at $10^6$ moves per second.\relax }}{11}{table.caption.6}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Dataset sizes\relax }}{20}{table.caption.11}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Test set performance without masking\relax }}{36}{table.caption.20}
+\contentsline {table}{\numberline {3.2}{\ignorespaces Rule Learning\relax }}{39}{table.caption.21}
+\contentsline {table}{\numberline {3.3}{\ignorespaces Rule Learning: Accuracies before and after masking.\relax }}{39}{table.caption.22}
+\contentsline {table}{\numberline {3.4}{\ignorespaces Moves generated for initial board position}}{43}{table.caption.26}
+\contentsline {table}{\numberline {3.5}{\ignorespaces Possible moves after the mistake by Carlsen in Move 26\relax }}{49}{table.caption.32}
+\contentsline {table}{\numberline {3.6}{\ignorespaces The most common assignment of piece valuations\relax }}{53}{table.caption.36}
+\contentsline {table}{\numberline {3.7}{\ignorespaces Results against negamax}}{58}{table.caption.40}
+\addvspace {10\p@ }
