@@ -1,7 +1,8 @@
 # ConvChess
 Convolutional Neural Networks learn chess moves
+The description of the model and other relevant details can be found in the docs directory.
 
-The source code consists of three different parts:
+The source code consists of four different parts:
 
 1. Data Generation: There are two steps to generating the data (in the form of matrices and labels/scores) from the pgn format set of games:
 	- Run get_train_data_large.py with appropriate options. The options list can be viewed by: `python get_train_data_large.py -h `. This will convert the pgn formats to the matrices and labels/scores format into npy files in the specified folder. 
