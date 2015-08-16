@@ -1,7 +1,0 @@
-*.npy
-*.pkl
-*.h5
-*.pyc
-*.caffemodel
-*.solverstate
-src/net/models/*/results.txt
