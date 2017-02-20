@@ -1,5 +1,8 @@
 # ConvChess
 Convolutional Neural Networks learn chess moves
+
+I must admit chess has already been solved and using an approximate solution to evaluate the board or moves is not the best idea. However, I wanted to try how game playing with pattern recognition methods works e.g. in recent success on Go. Feel free to use/reuse the code. There are some good insights in the ipython notebooks so as to investigate the evaluation function and action prediction models. You can always post an issue if you feel something is wrong/outdated/missing.
+
 The description of the model and other relevant details can be found in the docs directory.
 
 The source code consists of four different parts:
